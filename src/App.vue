@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import CreateMultisig from './components/CreateMultisig.vue';
 
 import {
   AminoTypes,
@@ -12,11 +13,10 @@ import { Registry, TxBodyEncodeObject  } from '@cosmjs/proto-signing';
 import * as Amino from '@cosmjs/amino';
 import * as Base64 from '@protobufjs/base64';
 
-import { parsePubKey } from './pubkey'
 import { initKeplr } from './keplr';
 import { CHAIN_ID, RPC_ENDPOINT, DENOM, BECH32_PREFIX } from './config';
 
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 interface SignatureData {
   address: string
@@ -34,32 +34,33 @@ const aminoTypes = new AminoTypes(aminoConverters);
 
 const registry = new Registry(defaultRegistryTypes);
 
-const pubKeyInputs = [
-  '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"A2lYkDJS8FVVFri7alHtiU/Otm9PeG0eJZg1CS0nUQAK"}',
-  '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"A/O+qXYcYKMKjsbveDpXP/JoWUTIQgsH/ueoWKRYNHio"}',
-  '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AzP996VjgwdbEOGlZHoPU8Q9U0aRvv+hULtP2Lp258ge"}',
-  '{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"AryzWG02hPbl7dMO106fiLAzB/q2wsGR86O9jT04mI3r"}',
-];
-const pubKeys = pubKeyInputs.map(parsePubKey);
-const multisigPubKey = Amino.createMultisigThresholdPubkey(pubKeys, 2);
+const multisigPubKey = ref(null as Amino.MultisigThresholdPubkey | null);
 
-const multisigAddr = Amino.pubkeyToAddress(multisigPubKey, BECH32_PREFIX)
-if (multisigAddr !== 'like1fdjelcn6qej98hxjenv0mp54fa674tv096pqah') {
-  throw new Error(`Expect like1fdjelcn6qej98hxjenv0mp54fa674tv096pqah, got ${multisigAddr}`);
+const multisigAddr = computed(() => {
+  if (multisigPubKey.value === null) {
+    return '';
+  }
+  return Amino.pubkeyToAddress(multisigPubKey.value, BECH32_PREFIX);
+});
+
+function setMultisigPubKey(pubKey: Amino.MultisigThresholdPubkey) {
+  multisigPubKey.value = pubKey;
 }
 
-const msg: MsgSendEncodeObject = {
-  typeUrl: '/cosmos.bank.v1beta1.MsgSend',
-  value: {
-    fromAddress: multisigAddr,
-    toAddress: 'like1ww3qews2y5jxe8apw2zt8stqqrcu2tpt2w4v7j',
-    amount: [{
-      amount: '1',
-      denom: DENOM,
-    }],
-  },
-};
-const aminoMsgSend = aminoTypes.toAmino(msg);
+const msg = computed(() => {
+  const msg: MsgSendEncodeObject = {
+    typeUrl: '/cosmos.bank.v1beta1.MsgSend',
+    value: {
+      fromAddress: multisigAddr.value,
+      toAddress: 'like1ww3qews2y5jxe8apw2zt8stqqrcu2tpt2w4v7j',
+      amount: [{
+        amount: '1',
+        denom: DENOM,
+      }],
+    },
+  };
+  return msg;
+});
 
 const fee = {
   amount: [], // TODO
@@ -67,8 +68,14 @@ const fee = {
 };
 
 async function sign() {
+  if (multisigPubKey.value === null) {
+    throw new Error('multisig public key not set yet');
+  }
+
+  const aminoMsgSend = aminoTypes.toAmino(msg.value);
+
   const stargateClient = await StargateClient.connect(RPC_ENDPOINT);
-  const acc = await stargateClient.getAccount(multisigAddr)
+  const acc = await stargateClient.getAccount(multisigAddr.value)
   if (acc === null) {
     throw new Error(`Cannot query account info for ${multisigAddr}`);
   }
@@ -90,7 +97,6 @@ async function sign() {
   console.log(signBytes);
   console.log([...signBytes].map((x) => String.fromCharCode(x)).join(''));
   
-  // const res = await signer.signAmino(accounts[0].address, signDoc);
   const res = await window.keplr!.signAmino(CHAIN_ID, currentAddr, signDoc, {
     disableBalanceCheck: true,
     preferNoSetFee: true,
@@ -101,10 +107,14 @@ async function sign() {
     address: currentAddr,
     signature: res.signature,
     sequence,
-  })
+  });
 }
 
 function combine() {
+  if (multisigPubKey.value === null) {
+    throw new Error('multisig public key not set yet');
+  }
+
   const signaturesMap = new Map<string, Uint8Array>();
   for (const { address, signature } of signatures.value) {
     const sigBase64 = signature.signature;
@@ -115,13 +125,13 @@ function combine() {
   const txBody: TxBodyEncodeObject = {
     typeUrl: '/cosmos.tx.v1beta1.TxBody',
     value: {
-      messages: [msg],
+      messages: [msg.value],
       memo: '',
     },
   };
   const txBodyBytes = registry.encode(txBody);
   const tx = makeMultisignedTx(
-    multisigPubKey, signatures.value[0].sequence, fee, txBodyBytes, signaturesMap,
+    multisigPubKey.value, signatures.value[0].sequence, fee, txBodyBytes, signaturesMap,
   );
   combinedSignature.value = Base64.encode(tx.signatures[0], 0, tx.signatures[0].length);
 }
@@ -129,12 +139,11 @@ function combine() {
 </script>
 
 <template>
-  <div>
-    Multisig Address: {{ multisigAddr }}
-  </div>
+  <CreateMultisig @update-multisig-pub-key="setMultisigPubKey" />
   <div v-for="signature of signatures" v-bind:key="signature.address">
     {{ signature }}
   </div>
   <button @click="sign">Sign using current address</button>
   <button @click="combine">Combine signatures</button>
+  <div>Combined signature: {{ combinedSignature }}</div>
 </template>
