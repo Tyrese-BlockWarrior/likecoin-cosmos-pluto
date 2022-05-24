@@ -10,6 +10,6 @@ export async function initKeplr(chainId: string) {
     throw new Error('Keplr not found');
   }
   await window.keplr.enable(chainId);
-  const offlineSigner = window.getOfflineSigner!(chainId);
+  const offlineSigner = window.getOfflineSigner!(chainId); // TODO: wrap keplr instead of use OfflineSigner for more options
   return offlineSigner;
 }

@@ -1,8 +1,10 @@
 import * as Amino from '@cosmjs/amino';
+import * as Base64 from '@protobufjs/base64';
 
 export const typeUrls = {
   secp256k1: '/cosmos.crypto.secp256k1.PubKey',
   ed25519: '/cosmos.crypto.ed25519.PubKey',
+  sr25519: '/cosmos.crypto.sr25519.PubKey',
   multisigThreshold: '/cosmos.crypto.multisig.LegacyAminoPubKey',
 } as const;
 
@@ -12,12 +14,14 @@ export type PubKeyType = (typeof Amino.pubkeyType)[keyof (typeof Amino.pubkeyTyp
 export const pubKeyTypeUrlToType = new Map<string, PubKeyType>([
   [typeUrls.secp256k1, Amino.pubkeyType.secp256k1],
   [typeUrls.ed25519, Amino.pubkeyType.ed25519],
+  [typeUrls.sr25519, Amino.pubkeyType.sr25519],
   [typeUrls.multisigThreshold, Amino.pubkeyType.multisigThreshold],
 ]);
 
 export const pubKeyTypeToTypeUrl = new Map<string, PubKeyTypeUrl>([
   [Amino.pubkeyType.secp256k1, typeUrls.secp256k1],
   [Amino.pubkeyType.ed25519, typeUrls.ed25519],
+  [Amino.pubkeyType.sr25519, typeUrls.sr25519],
   [Amino.pubkeyType.multisigThreshold, typeUrls.multisigThreshold],
 ]);
 
@@ -64,4 +68,14 @@ export function pubKeyToCosmosFormat(pubKey: Amino.Pubkey) {
     '@type': pubKeyTypeToTypeUrl.get(pubKey.type as PubKeyType),
     key: pubKey.value,
   });
+}
+
+export function keplrAccountToAminoPubKey(account: Amino.AccountData): Amino.Pubkey {
+  const pubKeyBytes = account.pubkey;
+  const pubKeyBase64 = Base64.encode(pubKeyBytes, 0, pubKeyBytes.length);
+  const aminoType = Amino.pubkeyType[account.algo];
+  return {
+    type: aminoType,
+    value: pubKeyBase64,
+  };
 }
