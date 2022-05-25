@@ -1,6 +1,15 @@
-<script setup lang="ts">
-import CreateMultisig from '@/components/multisig/CreateMultisig.vue';
+<template>
+  <div>
+    <button @click="sign">Sign using current address</button>
+  </div>
+  <div v-for="signature of signatures" v-bind:key="signature.address">
+    {{ signature }}
+  </div>
+  <button @click="combine">Combine signatures</button>
+  <div>Combined signature: {{ combinedSignature }}</div>
+</template>
 
+<script setup lang="ts">
 import {
   AminoTypes,
   createBankAminoConverters,
@@ -10,17 +19,22 @@ import {
   defaultRegistryTypes,
 } from '@cosmjs/stargate';
 import { Registry, TxBodyEncodeObject  } from '@cosmjs/proto-signing';
-import * as Amino from '@cosmjs/amino';
+import {
+  StdSignDoc as AminoSignDoc,
+  StdSignature as AminoSignature,
+  MultisigThresholdPubkey,
+  pubkeyToAddress,
+} from '@cosmjs/amino';
 import * as Base64 from '@protobufjs/base64';
 
-import { initKeplr } from '@/keplr';
+import { loadKeplr } from '@/keplr';
 import { CHAIN_ID, RPC_ENDPOINT, DENOM, BECH32_PREFIX } from '@/config';
 
 import { ref, computed } from 'vue';
 
 interface SignatureData {
   address: string
-  signature: Amino.StdSignature
+  signature: AminoSignature
   sequence: number
 }
 const signatures = ref([] as SignatureData[]);
@@ -34,16 +48,16 @@ const aminoTypes = new AminoTypes(aminoConverters);
 
 const registry = new Registry(defaultRegistryTypes);
 
-const multisigPubKey = ref(null as Amino.MultisigThresholdPubkey | null);
+const multisigPubKey = ref(null as MultisigThresholdPubkey | null);
 
 const multisigAddr = computed(() => {
   if (multisigPubKey.value === null) {
     return '';
   }
-  return Amino.pubkeyToAddress(multisigPubKey.value, BECH32_PREFIX);
+  return pubkeyToAddress(multisigPubKey.value, BECH32_PREFIX);
 });
 
-function setMultisigPubKey(pubKey: Amino.MultisigThresholdPubkey) {
+function setMultisigPubKey(pubKey: MultisigThresholdPubkey) {
   multisigPubKey.value = pubKey;
 }
 
@@ -81,7 +95,7 @@ async function sign() {
   }
   const { sequence, accountNumber } = acc;
 
-  const signDoc: Amino.StdSignDoc = {
+  const signDoc: AminoSignDoc = {
     chain_id: CHAIN_ID,
     account_number: accountNumber.toString(),
     sequence: sequence.toString(),
@@ -90,12 +104,9 @@ async function sign() {
     memo: '',
   };
   
-  const offlineSigner = await initKeplr(CHAIN_ID);
+  const offlineSigner = await loadKeplr(CHAIN_ID);
   const currentAddr = (await offlineSigner.getAccounts())[0].address;
   console.log({ currentAddr });
-  const signBytes = Amino.serializeSignDoc(signDoc);
-  console.log(signBytes);
-  console.log([...signBytes].map((x) => String.fromCharCode(x)).join(''));
   
   const res = await window.keplr!.signAmino(CHAIN_ID, currentAddr, signDoc, {
     disableBalanceCheck: true,
@@ -137,13 +148,3 @@ function combine() {
 }
 
 </script>
-
-<template>
-  <CreateMultisig @update-multisig-pub-key="setMultisigPubKey" />
-  <div v-for="signature of signatures" v-bind:key="signature.address">
-    {{ signature }}
-  </div>
-  <button @click="sign">Sign using current address</button>
-  <button @click="combine">Combine signatures</button>
-  <div>Combined signature: {{ combinedSignature }}</div>
-</template>

@@ -1,6 +1,9 @@
 import { defineStore } from "pinia";
 import { Coin } from '@cosmjs/stargate';
 import { EncodeObject } from "@cosmjs/proto-signing";
+import { StdSignDoc as AminoSignDoc } from '@cosmjs/amino';
+import { aminoTypes } from '@/cosmos/tx'
+import { CHAIN_ID } from "@/config";
 
 export const useTxStore = defineStore('tx', {
   state: () => ({
@@ -8,7 +11,7 @@ export const useTxStore = defineStore('tx', {
     memo: '',
     fee: {
       amount: [] as Coin[],
-      gas: '200000',
+      gas: 200000,
       payer: '',
       payee: '',
     },
@@ -22,8 +25,8 @@ export const useTxStore = defineStore('tx', {
     },
     clearMsgs() {
       this.msgs = [];
-    }
-  }
+    },
+  },
 });
 
 export default useTxStore;

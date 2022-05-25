@@ -1,4 +1,9 @@
-import * as Amino from '@cosmjs/amino';
+import {
+  Pubkey as AminoPubKey,
+  pubkeyType as AminoPubKeyType,
+  AccountData,
+  decodeBech32Pubkey,
+} from '@cosmjs/amino';
 import * as Base64 from '@protobufjs/base64';
 
 export const typeUrls = {
@@ -9,20 +14,20 @@ export const typeUrls = {
 } as const;
 
 export type PubKeyTypeUrl = (typeof typeUrls)[keyof (typeof typeUrls)];
-export type PubKeyType = (typeof Amino.pubkeyType)[keyof (typeof Amino.pubkeyType)];
+export type PubKeyType = (typeof AminoPubKeyType)[keyof (typeof AminoPubKeyType)];
 
 export const pubKeyTypeUrlToType = new Map<string, PubKeyType>([
-  [typeUrls.secp256k1, Amino.pubkeyType.secp256k1],
-  [typeUrls.ed25519, Amino.pubkeyType.ed25519],
-  [typeUrls.sr25519, Amino.pubkeyType.sr25519],
-  [typeUrls.multisigThreshold, Amino.pubkeyType.multisigThreshold],
+  [typeUrls.secp256k1, AminoPubKeyType.secp256k1],
+  [typeUrls.ed25519, AminoPubKeyType.ed25519],
+  [typeUrls.sr25519, AminoPubKeyType.sr25519],
+  [typeUrls.multisigThreshold, AminoPubKeyType.multisigThreshold],
 ]);
 
 export const pubKeyTypeToTypeUrl = new Map<string, PubKeyTypeUrl>([
-  [Amino.pubkeyType.secp256k1, typeUrls.secp256k1],
-  [Amino.pubkeyType.ed25519, typeUrls.ed25519],
-  [Amino.pubkeyType.sr25519, typeUrls.sr25519],
-  [Amino.pubkeyType.multisigThreshold, typeUrls.multisigThreshold],
+  [AminoPubKeyType.secp256k1, typeUrls.secp256k1],
+  [AminoPubKeyType.ed25519, typeUrls.ed25519],
+  [AminoPubKeyType.sr25519, typeUrls.sr25519],
+  [AminoPubKeyType.multisigThreshold, typeUrls.multisigThreshold],
 ]);
 
 export function parseJSONInputPubKey(obj: {}) {
@@ -41,16 +46,16 @@ export function parseJSONInputPubKey(obj: {}) {
 
 export function parseStringInputPubKey(input: string) {
   try {
-    return Amino.decodeBech32Pubkey(input);
+    return decodeBech32Pubkey(input);
   } catch (err) {
     return {
-      type: Amino.pubkeyType.secp256k1,
+      type: AminoPubKeyType.secp256k1,
       value: input,
     };
   }
 }
 
-export function parsePubKey(input: string): Amino.Pubkey {
+export function parsePubKey(input: string): AminoPubKey {
   let obj;
   try {
     obj = JSON.parse(input);
@@ -63,17 +68,17 @@ export function parsePubKey(input: string): Amino.Pubkey {
   return parseJSONInputPubKey(obj);
 }
 
-export function pubKeyToCosmosFormat(pubKey: Amino.Pubkey) {
+export function pubKeyToCosmosFormat(pubKey: AminoPubKey) {
   return JSON.stringify({
     '@type': pubKeyTypeToTypeUrl.get(pubKey.type as PubKeyType),
     key: pubKey.value,
   });
 }
 
-export function keplrAccountToAminoPubKey(account: Amino.AccountData): Amino.Pubkey {
+export function keplrAccountToAminoPubKey(account: AccountData): AminoPubKey {
   const pubKeyBytes = account.pubkey;
   const pubKeyBase64 = Base64.encode(pubKeyBytes, 0, pubKeyBytes.length);
-  const aminoType = Amino.pubkeyType[account.algo];
+  const aminoType = AminoPubKeyType[account.algo];
   return {
     type: aminoType,
     value: pubKeyBase64,
