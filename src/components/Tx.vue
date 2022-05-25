@@ -42,6 +42,9 @@
         {{ aminoSignDoc }}
       </div>
       <div>
+        <input ref="importUnsignedTxInput" type="file" @change="importUnsignedTxFileChange" style="display: none;">
+        <button @click="importUnsignedTxButtonClick">Import unsigned tx</button>
+        <button @click="exportUnsignedTx">Export unsigned tx</button>
         <button :disabled="!accountStore.signer" @click="signTx">Sign tx</button>
       </div>
       <div>
@@ -67,6 +70,7 @@ import { useAccountStore } from '@/stores/account';
 import { useTxStore } from '@/stores/tx';
 import { aminoTypes } from '@/cosmos/tx';
 import { DENOM, COIN_NAME, DENOM_EXPONENT, CHAIN_ID } from '@/config';
+import { generateFileAndDownload } from '@/utils/utils';
 
 const accountStore = useAccountStore();
 const txStore = useTxStore();
@@ -87,16 +91,8 @@ const inputGasLimit = ref(200000);
 const inputGasPrice = ref(100);
 
 watchEffect(() => {
-  const amount = {
-    amount: (inputGasLimit.value * inputGasPrice.value).toFixed(),
-    denom: DENOM,
-  };
-  if (txStore.fee.amount.length === 0) {
-    txStore.fee.amount.push(amount);
-  } else {
-    txStore.fee.amount[0] = amount;
-  }
-  txStore.fee.gas = inputGasLimit.value;
+  txStore.fee.amount = inputGasLimit.value * inputGasPrice.value;
+  txStore.fee.gasLimit = inputGasLimit.value;
 });
 
 const displayedFee = computed(() => {
@@ -116,12 +112,34 @@ function getAminoSignDoc(): AminoSignDoc {
     sequence: accountStore.sequence.toFixed(),
     chain_id: CHAIN_ID,
     fee: {
-      amount: txStore.fee.amount,
-      gas: txStore.fee.gas.toFixed(),
+      amount: [{
+        amount: txStore.fee.amount.toFixed(),
+        denom: DENOM,
+      }],
+      gas: txStore.fee.gasLimit.toFixed(),
     },
     memo: txStore.memo,
     msgs: txStore.msgs.map((msg) => aminoTypes.toAmino(msg)),
   };
+}
+
+const importUnsignedTxInput = ref();
+
+function importUnsignedTxButtonClick() {
+  importUnsignedTxInput.value.click();
+}
+
+async function importUnsignedTxFileChange(e: any) {
+  const file = e.target.files[0] as File;
+  const content = await file.text()
+  const unsignedTxJSON = JSON.parse(content);
+  txStore.importUnsignedTx(unsignedTxJSON)
+}
+
+async function exportUnsignedTx() {
+  const unsignedTx = txStore.exportUnsignedTx();
+  const exported = JSON.stringify(unsignedTx, null, 2);
+  generateFileAndDownload(exported, 'unsigned-tx.json');
 }
 
 async function signTx() {
