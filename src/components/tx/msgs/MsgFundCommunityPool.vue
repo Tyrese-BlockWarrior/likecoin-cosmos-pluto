@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h3>Fund Community Pool</h3>
     <div>
       Amount: <input v-model.trim.number="amount"> {{ COIN_NAME }}
     </div>

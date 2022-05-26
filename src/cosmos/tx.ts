@@ -7,7 +7,6 @@ import {
   createGovAminoConverters,
   createIbcAminoConverters,
   createStakingAminoConverters,
-  Coin,
 } from '@cosmjs/stargate';
 import { EncodeObject } from '@cosmjs/proto-signing';
 

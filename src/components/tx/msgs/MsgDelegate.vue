@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h3>Undelegate</h3>
     <div>
       Validator address: <input v-model.trim="validator">
     </div>
@@ -12,8 +11,8 @@
 </template>
 
 <script setup lang="ts">
+import { MsgDelegateEncodeObject } from '@cosmjs/stargate';
 import { ref } from 'vue';
-import { MsgUndelegateEncodeObject } from '@cosmjs/stargate';
 
 import { useAccountStore } from '@/stores/account';
 import { useTxStore } from '@/stores/tx';
@@ -27,8 +26,8 @@ const accountStore = useAccountStore();
 const txStore = useTxStore();
 
 function addMsg() {
-  const msg: MsgUndelegateEncodeObject = {
-    typeUrl: '/cosmos.staking.v1beta1.MsgUndelegate',
+  const msg: MsgDelegateEncodeObject = {
+    typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
     value: {
       delegatorAddress: accountStore.address,
       validatorAddress: validator.value,

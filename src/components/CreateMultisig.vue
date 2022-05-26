@@ -41,7 +41,6 @@
 
 <script setup lang="ts">
 import {
-  Pubkey as AminoPubKey,
   MultisigThresholdPubkey,
   pubkeyToAddress,
   createMultisigThresholdPubkey
@@ -49,12 +48,13 @@ import {
 import { ref, computed } from 'vue';
 
 import { useAccountStore } from '@/stores/account';
-import { pubKeyToCosmosFormat, parsePubKey } from '@/pubkey';
+import { PubKey } from '@/cosmos/pubkey';
 import { BECH32_PREFIX } from '@/config';
+import { IsSameUint8Array } from '@/utils/utils';
 
 type Multisigner = {
   keyholder: string,
-  pubKey: AminoPubKey,
+  pubKey: PubKey,
 }
 
 const accountStore = useAccountStore();
@@ -64,14 +64,14 @@ const accounts = computed(() =>
   multisigners.value.map(({ keyholder, pubKey }) => ({
     keyholder,
     address: pubkeyToAddress(pubKey, BECH32_PREFIX),
-    pubKey: pubKeyToCosmosFormat(pubKey),
+    pubKey: pubKey.toCosmosJSON(),
   }))
 );
 const currentSignerPublicKey = computed(() => {
   if (!accountStore.signerPublicKey) {
     return '-';
   }
-  return pubKeyToCosmosFormat(accountStore.signerPublicKey);
+  return accountStore.signerPublicKey.toCosmosJSON();
 })
 const multisigPubKey = ref(null as MultisigThresholdPubkey | null);
 const multisigAddress = computed(() => {
@@ -90,29 +90,29 @@ function removePubKey(i: number) {
 }
 
 function addPubKey() {
-  const parsedPubKey = parsePubKey(inputPubKey.value);
-  for (const { keyholder, pubKey } of multisigners.value) {
+  const pubKey = PubKey.fromStringInput(inputPubKey.value);
+  for (const { keyholder, pubKey: existingPubKey } of multisigners.value) {
     if (inputKeyholder.value === keyholder && keyholder !== '') {
       throw new Error('keyholder name already exist');
     }
-    if (pubKey.value === parsedPubKey.value) {
+    if (IsSameUint8Array(existingPubKey.value, pubKey.value)) {
       throw new Error('public key already exist');
     }
   }
-  multisigners.value.push({ keyholder: inputKeyholder.value, pubKey: parsedPubKey });
+  multisigners.value.push({ keyholder: inputKeyholder.value, pubKey: pubKey });
   inputPubKey.value = '';
   inputKeyholder.value = '';
 }
 
 function addCurrentSigner() {
-  inputPubKey.value = pubKeyToCosmosFormat(accountStore.signerPublicKey!);
+  inputPubKey.value = JSON.stringify(accountStore.signerPublicKey!.toCosmosJSON());
 }
 
 function generateMultisigPubKey() {
   if (inputThreshold.value <= 0 || inputThreshold.value > multisigners.value.length) {
     throw new Error('Invalid threshold value');
   }
-  const pubKey = createMultisigThresholdPubkey(multisigners.value.map(({ pubKey }) => pubKey), inputThreshold.value);
+  const pubKey = createMultisigThresholdPubkey(multisigners.value.map(({ pubKey }) => pubKey.toAminoPubKey()), inputThreshold.value);
   multisigPubKey.value = pubKey;
 }
 

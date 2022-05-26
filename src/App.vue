@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Account from '@/components/Account.vue';
 import CreateMultisig from '@/components/CreateMultisig.vue';
-import Tx from './components/Tx.vue';
+import Tx from './components/tx/Tx.vue';
 </script>
 
 <template>

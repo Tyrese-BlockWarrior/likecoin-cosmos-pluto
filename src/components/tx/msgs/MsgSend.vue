@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h3>Send {{ COIN_NAME }}</h3>
     <div>
       Send to address: <input v-model.trim="toAddress">
     </div>

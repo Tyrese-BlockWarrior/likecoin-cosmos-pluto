@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h3>Withdraw Rewards</h3>
     <div>
       Validator address: <input v-model.trim="validator">
     </div>

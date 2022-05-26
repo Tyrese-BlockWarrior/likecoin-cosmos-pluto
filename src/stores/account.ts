@@ -1,11 +1,10 @@
 import {
   OfflineAminoSigner,
-  Pubkey as AminoPubKey,
 } from "@cosmjs/amino";
 import { defineStore } from "pinia";
 import { OfflineDirectSigner } from '@cosmjs/proto-signing';
 import { loadKeplr } from "@/keplr";
-import { keplrAccountToAminoPubKey } from "@/pubkey";
+import { PubKey } from "@/cosmos/pubkey";
 import { readAccountChainInfo } from "@/cosmos/client";
 
 import { CHAIN_ID } from "@/config";
@@ -15,7 +14,7 @@ export const useAccountStore = defineStore('account', {
     address: '',
     signer: null as (OfflineDirectSigner & OfflineAminoSigner) | null,
     signerAddress: '',
-    signerPublicKey: null as AminoPubKey | null,
+    signerPublicKey: null as PubKey | null,
     sequence: 0,
     accountNumber: 0,
   }),
@@ -40,7 +39,7 @@ export const useAccountStore = defineStore('account', {
       this.updateAddress(account.address);
       this.signer = keplr;
       this.signerAddress = account.address;
-      this.signerPublicKey = keplrAccountToAminoPubKey(account);
+      this.signerPublicKey = PubKey.fromKeplrAccount(account);
     },
   },
 });

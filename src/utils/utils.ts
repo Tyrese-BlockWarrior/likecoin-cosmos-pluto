@@ -1,3 +1,5 @@
+import * as Base64 from '@protobufjs/base64';
+
 export function generateFileAndDownload(content: string, filename: string) {
   const a = document.createElement('a');
   const blob = new Blob([content]);
@@ -37,4 +39,21 @@ export function camelCaseToSnakeCase(s: string): string {
 
 export function camelCaseToSnakeCaseObject<T>(obj: T): T {
   return transformObjectKey(camelCaseToSnakeCase, obj);
+}
+
+export function encodeBase64(buf: Uint8Array) {
+  return Base64.encode(buf, 0, buf.length)
+}
+
+export function decodeBase64(input: string) {
+  const buf = new Uint8Array(Base64.length(input));
+  Base64.decode(input, buf, 0);
+  return buf;
+}
+
+export function IsSameUint8Array(x: Uint8Array, y: Uint8Array) {
+  if (x.length !== y.length) {
+    return false;
+  }
+  return x.every((b, i) => b === y[i]);
 }

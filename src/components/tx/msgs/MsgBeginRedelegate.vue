@@ -1,8 +1,10 @@
 <template>
   <div>
-    <h3>Delegate</h3>
     <div>
-      Validator address: <input v-model.trim="validator">
+      From validator address: <input v-model.trim="fromValidator">
+    </div>
+    <div>
+      To validator address: <input v-model.trim="toValidator">
     </div>
     <div>
       Amount: <input v-model.trim.number="amount"> {{ COIN_NAME }}
@@ -12,26 +14,28 @@
 </template>
 
 <script setup lang="ts">
-import { MsgDelegateEncodeObject } from '@cosmjs/stargate';
 import { ref } from 'vue';
+import { MsgBeginRedelegateEncodeObject } from '@/cosmos/msgs';
 
 import { useAccountStore } from '@/stores/account';
 import { useTxStore } from '@/stores/tx';
 import { humanAmountToDenomAmount } from '@/cosmos/tx';
 import { COIN_NAME } from '@/config';
 
-const validator = ref('');
+const fromValidator = ref('');
+const toValidator = ref('');
 const amount = ref(0);
 
 const accountStore = useAccountStore();
 const txStore = useTxStore();
 
 function addMsg() {
-  const msg: MsgDelegateEncodeObject = {
-    typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
+  const msg: MsgBeginRedelegateEncodeObject = {
+    typeUrl: '/cosmos.staking.v1beta1.MsgBeginRedelegate',
     value: {
       delegatorAddress: accountStore.address,
-      validatorAddress: validator.value,
+      validatorSrcAddress: fromValidator.value,
+      validatorDstAddress: toValidator.value,
       amount: humanAmountToDenomAmount(amount.value),
     },
   };
