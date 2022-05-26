@@ -2,6 +2,7 @@
 import Account from '@/components/Account.vue';
 import CreateMultisig from '@/components/CreateMultisig.vue';
 import Tx from './components/tx/Tx.vue';
+import Signature from './components/Signature.vue';
 </script>
 
 <template>
@@ -10,5 +11,6 @@ import Tx from './components/tx/Tx.vue';
     <Account />
     <CreateMultisig />
     <Tx />
+    <Signature />
   </div>
 </template>

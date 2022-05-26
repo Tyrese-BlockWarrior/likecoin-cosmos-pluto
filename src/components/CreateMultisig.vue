@@ -125,6 +125,6 @@ async function exportMultisigWallet() {
 }
 
 function useMultisigAsAccountAddress() {
-  accountStore.updateAddress(multisigAddress.value);
+  accountStore.updateAndReadAddress(multisigAddress.value);
 }
 </script>

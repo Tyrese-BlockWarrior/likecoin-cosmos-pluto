@@ -2,10 +2,10 @@
   <div>
     <h2>Fee</h2>
     <div>
-      Gas limit: <input v-model.trim.number="inputGasLimit" placeholder="Gas limit"/>
+      Gas limit: <input v-model.number="inputGasLimit" placeholder="Gas limit"/>
     </div>
     <div>
-      Gas price: <input v-model.trim.number="inputGasPrice" placeholder="Gas price"/> {{ DENOM }}
+      Gas price: <input v-model.number="inputGasPrice" placeholder="Gas price"/> {{ DENOM }}
     </div>
     <div>
       Fee: {{ displayedFee }}
@@ -27,6 +27,15 @@ const inputGasPrice = ref(100);
 watchEffect(() => {
   txStore.fee.amount = inputGasLimit.value * inputGasPrice.value;
   txStore.fee.gasLimit = inputGasLimit.value;
+});
+
+txStore.$onAction(({ name, after }) => {
+  after(() => {
+    if (name === 'importUnsignedTx') {
+      inputGasLimit.value = txStore.fee.gasLimit;
+      inputGasPrice.value = txStore.fee.amount / txStore.fee.gasLimit;
+    }
+  });
 });
 
 const displayedFee = computed(() => {

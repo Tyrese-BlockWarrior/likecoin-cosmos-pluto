@@ -9,7 +9,7 @@ export const useSignatureStore = defineStore('signature', {
     signature: null as SingleSignature | null,
   }),
   getters: {
-    signatureBase64(state) {
+    signatureBase64: (state) => {
       if (!state.signature) {
         return '-';
       }

@@ -25,7 +25,7 @@ export const useAccountStore = defineStore('account', {
       this.sequence = acc.sequence;
       return acc;
     },
-    async updateAddress(address: string) {
+    async updateAndReadAddress(address: string) {
       this.address = address;
       await this.readAccountChainInfo();
     },
@@ -36,7 +36,7 @@ export const useAccountStore = defineStore('account', {
         preferNoSetMemo: true,
       });
       const account = (await keplr.getAccounts())[0];
-      this.updateAddress(account.address);
+      this.updateAndReadAddress(account.address);
       this.signer = keplr;
       this.signerAddress = account.address;
       this.signerPublicKey = PubKey.fromKeplrAccount(account);

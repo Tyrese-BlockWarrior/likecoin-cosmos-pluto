@@ -1,7 +1,14 @@
 import { defineStore } from "pinia";
 import { EncodeObject } from "@cosmjs/proto-signing";
+import { StdSignDoc as AminoSignDoc } from '@cosmjs/amino';
 
-import { generateUnsignedTxJSON, parseUnsignedTxJSON, type UnsignedTxJSON } from "@/cosmos/tx";
+import {
+  generateUnsignedTxJSON,
+  parseUnsignedTxJSON,
+  type UnsignedTxJSON,
+  aminoTypes,
+} from "@/cosmos/tx";
+import { CHAIN_ID, DENOM } from "@/config";
 
 export const useTxStore = defineStore('tx', {
   state: () => ({
@@ -13,7 +20,24 @@ export const useTxStore = defineStore('tx', {
       payer: '',
       granter: '',
     },
+    unsignedTxJSON: null as UnsignedTxJSON | null,
   }),
+  getters: {
+    aminoSignDoc: (state) => (accountNumber: number, sequence: number): AminoSignDoc => ({
+      account_number: accountNumber.toFixed(),
+      sequence: sequence.toFixed(),
+      chain_id: CHAIN_ID,
+      fee: {
+        amount: [{
+          amount: state.fee.amount.toFixed(),
+          denom: DENOM,
+        }],
+        gas: state.fee.gasLimit.toFixed(),
+      },
+      memo: state.memo,
+      msgs: state.msgs.map((msg) => aminoTypes.toAmino(msg)),
+    }),
+  },
   actions: {
     addMsg(msg: EncodeObject) {
       this.msgs.push(msg);
@@ -24,15 +48,16 @@ export const useTxStore = defineStore('tx', {
     clearMsgs() {
       this.msgs = [];
     },
-    exportUnsignedTx() {
+    generateUnsignedTxJSON() {
       const { msgs, memo, fee } = this;
-      return generateUnsignedTxJSON({ msgs, memo, fee });
+      this.unsignedTxJSON = generateUnsignedTxJSON({ msgs, memo, fee });
     },
     importUnsignedTx(unsignedTxJSON: UnsignedTxJSON) {
       const { msgs, memo, fee } = parseUnsignedTxJSON(unsignedTxJSON);
       this.msgs = msgs;
       this.memo = memo;
       this.fee = fee;
+      this.unsignedTxJSON = unsignedTxJSON;
     },
   },
 });

@@ -3,10 +3,25 @@ import * as Base64 from '@protobufjs/base64';
 export function generateFileAndDownload(content: string, filename: string) {
   const a = document.createElement('a');
   const blob = new Blob([content]);
-  const url = URL.createObjectURL(blob); // Create an object URL from blob
+  const url = URL.createObjectURL(blob);
   a.setAttribute('href', url);
   a.setAttribute('download', filename);
   a.click();
+  a.parentElement?.removeChild(a);
+}
+
+export function selectAndImportFile(): Promise<string> {
+  return new Promise((resolve) => {
+    const input = document.createElement('input');
+    input.setAttribute('type', 'file');
+    input.onchange = async (e) => {
+      const file = input.files![0] as File;
+      const content = await file.text();
+      resolve(content);
+    };
+    input.click();
+    input.parentElement?.removeChild(input);
+  });
 }
 
 function transformObjectKey<T>(fn: (arg0: string) => string, obj: T): T {
