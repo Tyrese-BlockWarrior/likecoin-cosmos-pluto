@@ -14,8 +14,7 @@
 import { MsgSendEncodeObject } from '@cosmjs/stargate';
 import { ref } from 'vue';
 
-import { useAccountStore } from '@/stores/account';
-import { useTxStore } from '@/stores/tx';
+import { useAccountStore, useTxStore } from '@/stores';
 import { humanAmountToDenomAmount } from '@/cosmos/tx';
 import { COIN_NAME } from '@/config';
 

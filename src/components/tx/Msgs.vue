@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import { shallowRef } from 'vue';
 
-import { useTxStore } from '@/stores/tx';
+import { useTxStore } from '@/stores';
 
 import MsgSend from '@/components/tx/msgs/MsgSend.vue';
 import MsgDelegate from '@/components/tx/msgs/MsgDelegate.vue';

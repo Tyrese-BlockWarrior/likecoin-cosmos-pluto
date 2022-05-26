@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import { useSignatureStore } from '@/stores/signature';
+import { useSignatureStore } from '@/stores';
 import { generateFileAndDownload } from '@/utils/utils';
 
 const signatureStore = useSignatureStore();

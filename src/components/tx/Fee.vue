@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watchEffect } from 'vue';
-import { useTxStore } from '@/stores/tx';
+import { useTxStore } from '@/stores';
 
 import { DENOM, DENOM_EXPONENT, COIN_NAME } from '@/config';
 

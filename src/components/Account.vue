@@ -20,7 +20,7 @@
 </template>
 
 <script lang="ts" setup>
-import { useAccountStore } from '@/stores/account';
+import { useAccountStore } from '@/stores';
 
 const store = useAccountStore();
 

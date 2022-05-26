@@ -25,9 +25,7 @@
 import Msgs from './Msgs.vue';
 import Fee from './Fee.vue';
 
-import { useAccountStore } from '@/stores/account';
-import { useTxStore } from '@/stores/tx';
-import { useSignatureStore } from '@/stores/signature';
+import { useAccountStore, useTxStore, useSignatureStore  } from '@/stores';
 
 import { generateFileAndDownload, selectAndImportFile } from '@/utils/utils';
 import { signTxAmino } from '@/cosmos/signing';

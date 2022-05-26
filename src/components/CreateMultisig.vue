@@ -47,7 +47,7 @@ import {
 } from '@cosmjs/amino';
 import { ref, computed } from 'vue';
 
-import { useAccountStore } from '@/stores/account';
+import { useAccountStore } from '@/stores';
 import { PubKey } from '@/cosmos/pubkey';
 import { BECH32_PREFIX } from '@/config';
 import { IsSameUint8Array } from '@/utils/utils';

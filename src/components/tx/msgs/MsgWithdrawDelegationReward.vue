@@ -11,8 +11,7 @@
 import { ref } from 'vue';
 import { MsgWithdrawDelegatorRewardEncodeObject } from '@cosmjs/stargate';
 
-import { useAccountStore } from '@/stores/account';
-import { useTxStore } from '@/stores/tx';
+import { useAccountStore, useTxStore } from '@/stores';
 
 const validator = ref('');
 
