@@ -37,17 +37,17 @@ export type CosmosJSONPubKey = {
 
 export class PubKey {
   type: PubKeyType
-  value: Uint8Array
+  bytes: Uint8Array
 
   constructor(type: PubKeyType, value: Uint8Array) {
     this.type = type;
-    this.value = value;
+    this.bytes = value;
   }
 
   toCosmosJSON(): CosmosJSONPubKey {
     return {
       '@type': pubKeyTypeToTypeUrl.get(this.type)!,
-      key: encodeBase64(this.value),
+      key: encodeBase64(this.bytes),
     };
   }
 
@@ -66,7 +66,7 @@ export class PubKey {
   toAminoPubKey(): AminoPubKey {
     return {
       type: this.type,
-      value: encodeBase64(this.value),
+      value: encodeBase64(this.bytes),
     };
   }
 
@@ -81,12 +81,24 @@ export class PubKey {
   }
 
   static fromStringInput(input: string): PubKey {
+    // try parsing JSON
+    try {
+      const json = JSON.parse(input);
+      return PubKey.fromCosmosJSON(json);
+    } catch (err) {
+      console.error(err)
+    }
+
+    // try parsing Bech32
     try {
       return PubKey.fromBech32(input);
-    } catch {
-      const value = decodeBase64(input);
-      return new PubKey('tendermint/PubKeySecp256k1', value);
+    } catch (err) {
+      console.error(err)
     }
+
+    // treating it as base64 Secp256k1 pubkey
+    const value = decodeBase64(input);
+    return new PubKey('tendermint/PubKeySecp256k1', value);
   }
 
   static fromKeplrAccount(account: AccountData): PubKey {

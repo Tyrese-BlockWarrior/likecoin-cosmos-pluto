@@ -1,7 +1,7 @@
 <template>
   <h2>Create multisig wallet</h2>
   <ul>
-    <li v-for="(accInfo, i) of accounts" v-bind:key="accInfo.address">
+    <li v-for="(accInfo, i) of displayMultisigners" v-bind:key="accInfo.address">
       <button @click="removePubKey(i)">X</button> {{ accInfo.keyholder || '(unnamed)' }}: {{ accInfo.address }} (public key: {{ accInfo.pubKey }})
     </li>
   </ul>
@@ -43,27 +43,25 @@
 import {
   MultisigThresholdPubkey,
   pubkeyToAddress,
-  createMultisigThresholdPubkey
 } from '@cosmjs/amino';
 import { ref, computed } from 'vue';
 
-import { useAccountStore } from '@/stores';
+import { useAccountStore, useMultisigStore } from '@/stores';
 import { PubKey } from '@/cosmos/pubkey';
 import { BECH32_PREFIX } from '@/config';
-import { IsSameUint8Array } from '@/utils/utils';
-
-type Multisigner = {
-  keyholder: string,
-  pubKey: PubKey,
-}
+import {
+  IsSameUint8Array,
+  selectAndImportFile,
+  generateFileAndDownload,
+} from '@/utils/utils';
 
 const accountStore = useAccountStore();
+const multisigStore = useMultisigStore();
 
-const multisigners = ref([] as Multisigner[]);
-const accounts = computed(() => 
-  multisigners.value.map(({ keyholder, pubKey }) => ({
+const displayMultisigners = computed(() => 
+  multisigStore.multisigners.map(({ keyholder, pubKey }) => ({
     keyholder,
-    address: pubkeyToAddress(pubKey, BECH32_PREFIX),
+    address: pubkeyToAddress(pubKey.toAminoPubKey(), BECH32_PREFIX),
     pubKey: pubKey.toCosmosJSON(),
   }))
 );
@@ -86,20 +84,20 @@ const inputKeyholder = ref('');
 const inputThreshold = ref(1);
 
 function removePubKey(i: number) {
-  multisigners.value.splice(i, 1);
+  multisigStore.multisigners.splice(i, 1);
 }
 
 function addPubKey() {
   const pubKey = PubKey.fromStringInput(inputPubKey.value);
-  for (const { keyholder, pubKey: existingPubKey } of multisigners.value) {
+  for (const { keyholder, pubKey: existingPubKey } of multisigStore.multisigners) {
     if (inputKeyholder.value === keyholder && keyholder !== '') {
       throw new Error('keyholder name already exist');
     }
-    if (IsSameUint8Array(existingPubKey.value, pubKey.value)) {
+    if (IsSameUint8Array(existingPubKey.bytes, pubKey.bytes)) {
       throw new Error('public key already exist');
     }
   }
-  multisigners.value.push({ keyholder: inputKeyholder.value, pubKey: pubKey });
+  multisigStore.multisigners.push({ keyholder: inputKeyholder.value, pubKey: pubKey });
   inputPubKey.value = '';
   inputKeyholder.value = '';
 }
@@ -109,19 +107,25 @@ function addCurrentSigner() {
 }
 
 function generateMultisigPubKey() {
-  if (inputThreshold.value <= 0 || inputThreshold.value > multisigners.value.length) {
+  if (inputThreshold.value <= 0 || inputThreshold.value > multisigStore.multisigners.length) {
     throw new Error('Invalid threshold value');
   }
-  const pubKey = createMultisigThresholdPubkey(multisigners.value.map(({ pubKey }) => pubKey.toAminoPubKey()), inputThreshold.value);
-  multisigPubKey.value = pubKey;
+  multisigStore.threshold = inputThreshold.value;
+  multisigPubKey.value = multisigStore.getMultisigPubKey();
 }
 
 async function importMultisigWallet() {
-  // TODO
+  const content = await selectAndImportFile();
+  const multisignInfoJSON = JSON.parse(content);
+  multisigStore.import(multisignInfoJSON);
+  inputThreshold.value = multisigStore.threshold;
+  multisigPubKey.value = multisigStore.getMultisigPubKey();
 }
 
 async function exportMultisigWallet() {
-  // TODO
+  const multisignInfoJSON = multisigStore.export();
+  const content = JSON.stringify(multisignInfoJSON, null, 2);
+  generateFileAndDownload(content, 'multisign-info.json');
 }
 
 function useMultisigAsAccountAddress() {
