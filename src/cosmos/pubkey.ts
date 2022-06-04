@@ -3,8 +3,13 @@ import {
   pubkeyType as AminoPubKeyType,
   AccountData,
   decodeBech32Pubkey,
+  SinglePubkey,
+  isSinglePubkey,
+  MultisigThresholdPubkey,
+  isMultisigThresholdPubkey,
 } from '@cosmjs/amino';
-import { encodeBase64, decodeBase64 } from '@/utils/utils';
+import { encodeBase64, isBech32 } from '@/utils/utils';
+import { test as testBase64 } from '@protobufjs/base64';
 
 const typeUrls = {
   secp256k1: '/cosmos.crypto.secp256k1.PubKey',
@@ -30,79 +35,102 @@ const pubKeyTypeToTypeUrl = new Map<string, PubKeyTypeUrl>([
   [AminoPubKeyType.multisigThreshold, typeUrls.multisigThreshold],
 ]);
 
-export type CosmosJSONPubKey = {
-  ['@type']: string,
-  key: string,
-};
-
 export class PubKey {
-  type: PubKeyType
-  bytes: Uint8Array
+  aminoPubKey: AminoPubKey
 
-  constructor(type: PubKeyType, value: Uint8Array) {
-    this.type = type;
-    this.bytes = value;
+  constructor(aminoPubKey: AminoPubKey) {
+    this.aminoPubKey = aminoPubKey
   }
 
-  toCosmosJSON(): CosmosJSONPubKey {
-    return {
-      '@type': pubKeyTypeToTypeUrl.get(this.type)!,
-      key: encodeBase64(this.bytes),
-    };
-  }
-
-  static fromCosmosJSON(json: CosmosJSONPubKey): PubKey {
-    const { ['@type']: typeURL, key } = json;
-    if (typeof typeURL !== 'string' || typeof key !== 'string') {
-      throw new Error('Invalid JSON object, missing or invalid "@type" or "key" field');
+  toCosmosJSON(){
+    if (isSinglePubkey(this.aminoPubKey)) {
+      return {
+        '@type': pubKeyTypeToTypeUrl.get(this.aminoPubKey.type)!,
+        key: this.aminoPubKey.value,
+      };
     }
-    if (!pubKeyTypeUrlToType.has(typeURL)) {
-      throw new Error(`Unknown public key type: ${typeURL}`)
+    if (isMultisigThresholdPubkey(this.aminoPubKey)) {
+      const pubKeys: any[] = this.aminoPubKey.value.pubkeys.map((pubKey) => new PubKey(pubKey).toCosmosJSON());
+      return {
+        '@type': typeUrls.multisigThreshold,
+        threshold: Number.parseInt(this.aminoPubKey.value.threshold, 10),
+        public_keys: pubKeys,
+      };
     }
-    const value = decodeBase64(key);
-    return new PubKey(pubKeyTypeUrlToType.get(typeURL)!, value);
+    throw new Error(`Unknown Amino public key type: ${this.aminoPubKey.type}`);
   }
 
-  toAminoPubKey(): AminoPubKey {
-    return {
-      type: this.type,
-      value: encodeBase64(this.bytes),
-    };
-  }
-
-  static fromAminoPubKey(aminoPubKey: AminoPubKey): PubKey {
-    const value = decodeBase64(aminoPubKey.value);
-    return new PubKey(aminoPubKey.type as PubKeyType, value);
+  static fromCosmosJSON(json: any): PubKey {
+    const { ['@type']: typeURL } = json;
+    if (typeof typeURL !== 'string') {
+      throw new Error('Invalid JSON object: missing or wrong "@type" field');
+    }
+    const type = pubKeyTypeUrlToType.get(typeURL)!;
+    switch (type) {
+      case AminoPubKeyType.secp256k1:
+      case AminoPubKeyType.ed25519:
+      case AminoPubKeyType.sr25519: {
+        const { key } = json;
+        if (typeof key !== 'string') {
+          throw new Error('Invalid JSON object: missing or wrong "key" field');
+        }
+        return new PubKey({ type, value: key } as SinglePubkey);
+      }
+      case AminoPubKeyType.multisigThreshold: {
+        const { threshold, public_keys: pubKeys } = json;
+        if (typeof threshold !== 'number') {
+          throw new Error('Invalid JSON object: missing or wrong "threshold" field');
+        }
+        if (!Array.isArray(pubKeys)) {
+          throw new Error('Invalid JSON object: missing or wrong "public_keys" field');
+        }
+        return new PubKey({
+          type,
+          value: {
+            threshold: threshold.toString(),
+            pubkeys: pubKeys.map((pubKey) => PubKey.fromCosmosJSON(pubKey).aminoPubKey),
+          },
+        } as MultisigThresholdPubkey);
+      }
+      default: {
+        throw new Error(`Unknown public key type URL: ${typeURL}`);
+      }
+    }
   }
 
   static fromBech32(input: string): PubKey {
-      const aminoPubKey = decodeBech32Pubkey(input);
-      return PubKey.fromAminoPubKey(aminoPubKey);
+    const aminoPubKey = decodeBech32Pubkey(input);
+    return new PubKey(aminoPubKey);
   }
 
   static fromStringInput(input: string): PubKey {
-    // try parsing JSON
-    try {
-      const json = JSON.parse(input);
+    const trimmedInput = input.trim();
+    if (trimmedInput.startsWith(`'`) && trimmedInput.endsWith(`'`)) {
+      // could be a JSON surrounded by "''", e.g. `'{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"..."}'`
+      return PubKey.fromStringInput(trimmedInput.slice(1, trimmedInput.length - 1));
+    }
+    if (trimmedInput.startsWith(`{`) && trimmedInput.endsWith(`}`)) {
+      // could be a JSON object, e.g. `{"@type":"/cosmos.crypto.secp256k1.PubKey","key":"..."}`
+      const json = JSON.parse(trimmedInput);
       return PubKey.fromCosmosJSON(json);
-    } catch (err) {
-      console.error(err)
     }
-
-    // try parsing Bech32
-    try {
-      return PubKey.fromBech32(input);
-    } catch (err) {
-      console.error(err)
+    // note that isBech32 must go before testBase64, since most Bech32 strings are also valid Base64 strings
+    if (isBech32(trimmedInput)) {
+      // in theory it is possible to have a Base64 which is also Bech32
+      // but in practical use (kind-of-random public key) it should be safe to ignore this case
+      return PubKey.fromBech32(trimmedInput);
     }
-
-    // treating it as base64 Secp256k1 pubkey
-    const value = decodeBase64(input);
-    return new PubKey('tendermint/PubKeySecp256k1', value);
+    if (testBase64(trimmedInput)) {
+      // pure Base64 string
+      // we don't know the type, treating it as base64 Secp256k1 pubkey
+      return new PubKey({ type: AminoPubKeyType.secp256k1, value: trimmedInput });
+    }
+    throw new Error(`Unknown input string as public key: ${input}`);
   }
 
   static fromKeplrAccount(account: AccountData): PubKey {
     const type = AminoPubKeyType[account.algo];
-    return new PubKey(type, account.pubkey);
+    const value = encodeBase64(account.pubkey);
+    return new PubKey({ type, value });
   }
 }

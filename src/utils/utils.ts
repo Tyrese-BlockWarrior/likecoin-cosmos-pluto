@@ -72,3 +72,7 @@ export function IsSameUint8Array(x: Uint8Array, y: Uint8Array) {
   }
   return x.every((b, i) => b === y[i]);
 }
+
+export function isBech32(s: string) {
+  return /^[\x21-\x7E]{1,83}1[ac-hj-np-z02-9]{6,}$/.test(s);
+}

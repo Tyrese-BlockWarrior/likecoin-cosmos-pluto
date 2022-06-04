@@ -142,7 +142,7 @@ type SingleSignatureJSON = ReturnType<InstanceType<typeof SingleSignature>['toJS
 
 export async function signTxAmino(signer: OfflineAminoSigner, signerAddress: string, signDoc: AminoSignDoc): Promise<SingleSignature> {
   const res = await signer.signAmino(signerAddress, signDoc);
-  const pubKey = PubKey.fromAminoPubKey(res.signature.pub_key);
+  const pubKey = new PubKey(res.signature.pub_key);
   const signature = decodeBase64(res.signature.signature)
   const { sequence } = res.signed;
   return new SingleSignature(pubKey, signature, sequence);

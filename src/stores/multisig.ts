@@ -28,7 +28,7 @@ export const useMultisigStore = defineStore('multisig', {
   }),
   getters: {
     getMultisigPubKey: (state) => () => createMultisigThresholdPubkey(
-      state.multisigners.map(({ pubKey }) => pubKey.toAminoPubKey()),
+      state.multisigners.map(({ pubKey }) => pubKey.aminoPubKey),
       state.threshold,
     ),
   },

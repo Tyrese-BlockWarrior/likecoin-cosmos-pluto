@@ -50,7 +50,6 @@ import { useAccountStore, useMultisigStore } from '@/stores';
 import { PubKey } from '@/cosmos/pubkey';
 import { BECH32_PREFIX } from '@/config';
 import {
-  IsSameUint8Array,
   selectAndImportFile,
   generateFileAndDownload,
 } from '@/utils/utils';
@@ -61,7 +60,7 @@ const multisigStore = useMultisigStore();
 const displayMultisigners = computed(() => 
   multisigStore.multisigners.map(({ keyholder, pubKey }) => ({
     keyholder,
-    address: pubkeyToAddress(pubKey.toAminoPubKey(), BECH32_PREFIX),
+    address: pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX),
     pubKey: pubKey.toCosmosJSON(),
   }))
 );
@@ -89,11 +88,13 @@ function removePubKey(i: number) {
 
 function addPubKey() {
   const pubKey = PubKey.fromStringInput(inputPubKey.value);
+  const addr = pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX);
   for (const { keyholder, pubKey: existingPubKey } of multisigStore.multisigners) {
     if (inputKeyholder.value === keyholder && keyholder !== '') {
       throw new Error('keyholder name already exist');
     }
-    if (IsSameUint8Array(existingPubKey.bytes, pubKey.bytes)) {
+    const existingAddr = pubkeyToAddress(existingPubKey.aminoPubKey, BECH32_PREFIX);
+    if (addr === existingAddr) {
       throw new Error('public key already exist');
     }
   }
