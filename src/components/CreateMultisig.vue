@@ -34,7 +34,6 @@
     <div>
       <button @click="importMultisigWallet">Import from JSON file</button>
       <button :disabled="!multisigAddress" @click="exportMultisigWallet">Export as JSON file</button>
-      <button :disabled="!multisigAddress" @click="useMultisigAsAccountAddress">Use as account address</button>
     </div>
   </div>
 </template>
@@ -112,7 +111,9 @@ function generateMultisigPubKey() {
     throw new Error('Invalid threshold value');
   }
   multisigStore.threshold = inputThreshold.value;
-  multisigPubKey.value = multisigStore.getMultisigPubKey();
+  const aminoPubKey = multisigStore.getMultisigPubKey();
+  multisigPubKey.value = aminoPubKey;
+  accountStore.updatePubKeyAndReadChain(new PubKey(aminoPubKey));
 }
 
 async function importMultisigWallet() {
@@ -120,16 +121,14 @@ async function importMultisigWallet() {
   const multisignInfoJSON = JSON.parse(content);
   multisigStore.import(multisignInfoJSON);
   inputThreshold.value = multisigStore.threshold;
-  multisigPubKey.value = multisigStore.getMultisigPubKey();
+  const aminoPubKey = multisigStore.getMultisigPubKey();
+  multisigPubKey.value = aminoPubKey;
+  accountStore.updatePubKeyAndReadChain(new PubKey(aminoPubKey));
 }
 
 async function exportMultisigWallet() {
   const multisignInfoJSON = multisigStore.export();
   const content = JSON.stringify(multisignInfoJSON, null, 2);
   generateFileAndDownload(content, 'multisign-info.json');
-}
-
-function useMultisigAsAccountAddress() {
-  accountStore.updateAndReadAddress(multisigAddress.value);
 }
 </script>

@@ -9,6 +9,7 @@ import {
   createStakingAminoConverters,
 } from '@cosmjs/stargate';
 import { EncodeObject } from '@cosmjs/proto-signing';
+import { Coin, StdFee } from '@cosmjs/amino';
 
 import { camelCaseToSnakeCaseObject, snakeCaseToCamelCaseObject } from '@/utils/utils';
 import { BECH32_PREFIX, DENOM, DENOM_EXPONENT } from '@/config';
@@ -32,15 +33,32 @@ export function humanAmountToDenomAmount(amount: number) {
   };
 }
 
-type UnsignedTxComponents = {
+export type Fee = {
+  amount: number,
+  gasLimit: number,
+  payer: string,
+  granter: string,
+};
+
+export function toStdFee(fee: Fee) {
+  const { gasLimit, amount } = fee;
+  const stdFee = {
+    gas: gasLimit.toString(),
+    amount: [] as Coin[],
+  };
+  if (amount > 0) {
+    stdFee.amount.push({
+      amount: amount.toString(),
+      denom: DENOM,
+    });
+  }
+  return stdFee as StdFee;
+}
+
+export type UnsignedTxComponents = {
   msgs: EncodeObject[],
   memo: string,
-  fee: {
-    amount: number,
-    gasLimit: number,
-    payer: string,
-    granter: string,
-  },
+  fee: Fee,
 };
 
 export function generateUnsignedTxJSON({ msgs, memo, fee }: UnsignedTxComponents) {

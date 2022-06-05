@@ -1,10 +1,12 @@
+import { BECH32_PREFIX } from '@/config';
 import { decodeBase64, encodeBase64 } from '@/utils/utils';
 import {
   OfflineAminoSigner,
   StdSignDoc as AminoSignDoc,
-  Pubkey as AminoPubKey,
+  pubkeyToAddress,
+  MultisigThresholdPubkey,
 } from '@cosmjs/amino';
-import { SignMode, signModeFromJSON, signModeToJSON } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing"
+import { SignMode, signModeToJSON } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing"
 
 import { PubKey } from './pubkey';
 
@@ -114,6 +116,10 @@ export class SingleSignature {
     this.sequence = sequence;
   }
 
+  address() {
+    return pubkeyToAddress(this.pubKey.aminoPubKey, BECH32_PREFIX);
+  }
+
   toJSON() {
     return {
       signatures: [{
@@ -127,6 +133,11 @@ export class SingleSignature {
         sequence: this.sequence,
       }],
     };
+  }
+
+  static isSingleSignatureJSON(json: any): json is SingleSignatureJSON {
+    // TODO
+    return true;
   }
 
   static fromJSON(json: SingleSignatureJSON): SingleSignature {

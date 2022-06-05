@@ -48,7 +48,7 @@ async function exportUnsignedTx() {
 async function signTx() {
   const { accountNumber, sequence } = accountStore;
   const aminoSignDoc = txStore.aminoSignDoc(accountNumber, sequence);
-  const signature = await signTxAmino(accountStore.signer!, accountStore.address, aminoSignDoc);
+  const signature = await signTxAmino(accountStore.signer!, accountStore.signerAddress, aminoSignDoc);
   signatureStore.signature = signature;
 }
 </script>

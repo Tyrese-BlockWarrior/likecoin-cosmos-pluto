@@ -10,18 +10,28 @@ export function generateFileAndDownload(content: string, filename: string) {
   a.parentElement?.removeChild(a);
 }
 
-export function selectAndImportFile(): Promise<string> {
+export function selectAndImportFiles(isMultiple: boolean = true): Promise<string[]> {
   return new Promise((resolve) => {
     const input = document.createElement('input');
     input.setAttribute('type', 'file');
+    if (isMultiple) {
+      input.setAttribute('multiple', '1');
+    }
     input.onchange = async (e) => {
-      const file = input.files![0] as File;
-      const content = await file.text();
-      resolve(content);
+      const promises = [] as Promise<string>[];
+      for (let i = 0; i < input.files!.length; i += 1) {
+        const file = input.files![i] as File;
+        promises.push(file.text());
+      }
+      resolve(await Promise.all(promises));
     };
     input.click();
     input.parentElement?.removeChild(input);
   });
+}
+
+export function selectAndImportFile(): Promise<string> {
+  return selectAndImportFiles(false).then((arr) => arr[0]);
 }
 
 function transformObjectKey<T>(fn: (arg0: string) => string, obj: T): T {
