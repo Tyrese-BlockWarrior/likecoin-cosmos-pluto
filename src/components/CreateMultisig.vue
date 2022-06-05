@@ -1,26 +1,35 @@
 <template>
-  <h2>Create multisig wallet</h2>
+  <h2>Multisig wallet</h2>
   <ul>
     <li v-for="(accInfo, i) of displayMultisigners" v-bind:key="accInfo.address">
-      <button @click="removePubKey(i)">X</button> {{ accInfo.keyholder || '(unnamed)' }}: {{ accInfo.address }} (public key: {{ accInfo.pubKey }})
+      <button v-if="props.edit" @click="removePubKey(i)">X</button> {{ accInfo.keyholder || '(unnamed)' }}: {{ accInfo.address }} (public key: {{ accInfo.pubKey }})
     </li>
   </ul>
-  <div>
-    <input v-model.trim="inputKeyholder" placeholder="Key holder name"/>
-    <input v-model.trim="inputPubKey" placeholder="Public key"/>
-    <button @click="addPubKey">Add</button>
+  <div v-if="props.edit">
+    <div>
+      Key holder: <input v-model.trim="inputKeyholder" placeholder="Key holder name"/>
+    </div>
+    <div>
+      <input v-model.trim="inputPubKey" placeholder="Public key"/>
+    </div>
+    <div>
+      <button @click="addPubKey">Add</button>
+    </div>
   </div>
-  <div>
+  <div v-if="props.edit">
     Current signing public key: {{ currentSignerPublicKey }}
-    <button :disabled="accountStore.address === ''" @click="addCurrentSigner">
+    <button :disabled="accountStore.signerAddress === ''" @click="addCurrentSigner">
       Use this public key
     </button>
   </div>
   <div>
-    <div>
+    <div v-if="props.edit">
       Multisig threshold: <input v-model.number="inputThreshold" placeholder="multisig threshold"/>
     </div>
-    <div>
+    <div v-else>
+      Multisig threshold: {{ multisigStore.threshold }}
+    </div>
+    <div v-if="props.edit">
       <button @click="generateMultisigPubKey">Generate multisig public key</button>
     </div>
   </div>
@@ -52,6 +61,10 @@ import {
   selectAndImportFile,
   generateFileAndDownload,
 } from '@/utils/utils';
+
+const props = defineProps<{
+  edit?: boolean
+}>();
 
 const accountStore = useAccountStore();
 const multisigStore = useMultisigStore();

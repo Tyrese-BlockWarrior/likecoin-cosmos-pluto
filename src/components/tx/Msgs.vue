@@ -29,12 +29,14 @@ import { shallowRef } from 'vue';
 
 import { useTxStore } from '@/stores';
 
-import MsgSend from '@/components/tx/msgs/MsgSend.vue';
-import MsgDelegate from '@/components/tx/msgs/MsgDelegate.vue';
-import MsgUndelegate from '@/components/tx/msgs/MsgUndelegate.vue';
-import MsgBeginRedelegate from '@/components/tx/msgs/MsgBeginRedelegate.vue';
-import MsgWithdrawDelegationReward from '@/components/tx/msgs/MsgWithdrawDelegationReward.vue';
-import MsgFundCommunityPool from '@/components/tx/msgs/MsgFundCommunityPool.vue';
+import {
+  MsgSend,
+  MsgDelegate,
+  MsgUndelegate,
+  MsgBeginRedelegate,
+  MsgWithdrawDelegationReward,
+  MsgFundCommunityPool,
+} from '@/components/tx/msgs';
 
 const txStore = useTxStore();
 

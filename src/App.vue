@@ -1,18 +1,18 @@
-<script setup lang="ts">
-import Account from '@/components/Account.vue';
-import CreateMultisig from '@/components/CreateMultisig.vue';
-import Tx from './components/tx/Tx.vue';
-import Signature from './components/Signature.vue';
-import CombineSignatures from './components/CombineSignatures.vue';
-</script>
-
 <template>
   <div>
     <h1>Pluto</h1>
-    <Account />
-    <CreateMultisig />
-    <Tx />
-    <Signature />
-    <CombineSignatures />
+    <div>
+      <router-link to="/multisig">Create multisig wallet</router-link>
+    </div>
+    <div>
+      <router-link to="/tx">Create / Sign tx</router-link>
+    </div>
+    <div>
+      <router-link to="/combine-signatures">Combine signatures and broadcast tx</router-link>
+    </div>
+    <router-view></router-view>
   </div>
 </template>
+
+<script setup lang="ts">
+</script>
