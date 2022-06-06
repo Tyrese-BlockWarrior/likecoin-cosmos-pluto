@@ -8,7 +8,7 @@
       <router-link to="/tx">Create / Sign tx</router-link>
     </div>
     <div>
-      <router-link to="/combine-signatures">Combine signatures and broadcast tx</router-link>
+      <router-link to="/combine-signatures">Combine signatures / broadcast tx</router-link>
     </div>
     <router-view></router-view>
   </div>

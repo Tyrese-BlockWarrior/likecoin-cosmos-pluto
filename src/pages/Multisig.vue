@@ -2,11 +2,11 @@
   <h2>Create multisig wallet</h2>
   <div>
     <Account />
-    <CreateMultisig :edit="true" />
+    <Multisig :edit="true" />
   </div>
 </template>
 
 <script setup lang="ts">
 import Account from '@/components/Account.vue';
-import CreateMultisig from '@/components/CreateMultisig.vue';
+import Multisig from '@/components/Multisig.vue';
 </script>

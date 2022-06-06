@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>Fee</h2>
+    <h3>Fee</h3>
     <div>
       Gas limit: <input v-model.number="inputGasLimit" placeholder="Gas limit"/>
     </div>

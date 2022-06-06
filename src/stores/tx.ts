@@ -1,9 +1,11 @@
 import { defineStore } from "pinia";
+
 import { Registry, EncodeObject, TxBodyEncodeObject } from "@cosmjs/proto-signing";
 import {
   StdSignDoc as AminoSignDoc,
 } from '@cosmjs/amino';
 import { defaultRegistryTypes } from "@cosmjs/stargate";
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import {
   generateUnsignedTxJSON,
@@ -27,10 +29,10 @@ export const useTxStore = defineStore("tx", {
       granter: "",
     },
     unsignedTxJSON: null as UnsignedTxJSON | null,
+    signedTxRaw: null as TxRaw | null,
   }),
   getters: {
-    aminoSignDoc:
-      (state) =>
+    aminoSignDoc: (state) =>
       (accountNumber: number, sequence: number): AminoSignDoc => ({
         account_number: accountNumber.toFixed(),
         sequence: sequence.toFixed(),
@@ -58,7 +60,7 @@ export const useTxStore = defineStore("tx", {
         },
       };
       return registry.encode(txBody);
-    }
+    },
   },
   actions: {
     addMsg(msg: EncodeObject) {

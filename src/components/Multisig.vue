@@ -24,7 +24,7 @@
   </div>
   <div>
     <div v-if="props.edit">
-      Multisig threshold: <input v-model.number="inputThreshold" placeholder="multisig threshold"/>
+      Multisig threshold: <input v-model.number="multisigStore.threshold" placeholder="multisig threshold"/>
     </div>
     <div v-else>
       Multisig threshold: {{ multisigStore.threshold }}
@@ -35,11 +35,11 @@
   </div>
   <div>
     <div>
-      Multisig address: {{ multisigAddress }}
+      Public Key: {{ multisigStore.pubKey ?? '-' }}
     </div>
-    <div>
-      Public Key: {{ multisigPubKey }}
-    </div>
+      <div>
+        Multisig address: {{ multisigAddress }}
+      </div>
     <div>
       <button @click="importMultisigWallet">Import from JSON file</button>
       <button :disabled="!multisigAddress" @click="exportMultisigWallet">Export as JSON file</button>
@@ -82,17 +82,15 @@ const currentSignerPublicKey = computed(() => {
   }
   return accountStore.signerPublicKey.toCosmosJSON();
 })
-const multisigPubKey = ref(null as MultisigThresholdPubkey | null);
 const multisigAddress = computed(() => {
-  if (multisigPubKey.value === null) {
+  if (multisigStore.pubKey === null) {
     return '';
   }
-  return pubkeyToAddress(multisigPubKey.value, BECH32_PREFIX);
+  return pubkeyToAddress(multisigStore.pubKey, BECH32_PREFIX);
 });
 
 const inputPubKey = ref('');
 const inputKeyholder = ref('');
-const inputThreshold = ref(1);
 
 function removePubKey(i: number) {
   multisigStore.multisigners.splice(i, 1);
@@ -120,28 +118,27 @@ function addCurrentSigner() {
 }
 
 function generateMultisigPubKey() {
-  if (inputThreshold.value <= 0 || inputThreshold.value > multisigStore.multisigners.length) {
+  if (multisigStore.threshold <= 0 || multisigStore.threshold > multisigStore.multisigners.length) {
     throw new Error('Invalid threshold value');
   }
-  multisigStore.threshold = inputThreshold.value;
-  const aminoPubKey = multisigStore.getMultisigPubKey();
-  multisigPubKey.value = aminoPubKey;
-  accountStore.updatePubKeyAndReadChain(new PubKey(aminoPubKey));
+  multisigStore.generatePubKey();
+  updatePubKey();
 }
 
 async function importMultisigWallet() {
   const content = await selectAndImportFile();
   const multisignInfoJSON = JSON.parse(content);
   multisigStore.import(multisignInfoJSON);
-  inputThreshold.value = multisigStore.threshold;
-  const aminoPubKey = multisigStore.getMultisigPubKey();
-  multisigPubKey.value = aminoPubKey;
-  accountStore.updatePubKeyAndReadChain(new PubKey(aminoPubKey));
+  updatePubKey();
 }
 
 async function exportMultisigWallet() {
   const multisignInfoJSON = multisigStore.export();
   const content = JSON.stringify(multisignInfoJSON, null, 2);
   generateFileAndDownload(content, 'multisign-info.json');
+}
+
+function updatePubKey() {
+  accountStore.updatePubKeyAndReadChain(new PubKey(multisigStore.pubKey!));
 }
 </script>

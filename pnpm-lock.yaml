@@ -2,6 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@cosmjs/amino': ^0.28.4
+  '@cosmjs/crypto': ^0.28.4
   '@cosmjs/proto-signing': ^0.28.4
   '@cosmjs/stargate': ^0.28.4
   '@keplr-wallet/types': ^0.10.3
@@ -19,6 +20,7 @@ specifiers:
 
 dependencies:
   '@cosmjs/amino': 0.28.4
+  '@cosmjs/crypto': 0.28.4
   '@cosmjs/proto-signing': 0.28.4
   '@cosmjs/stargate': 0.28.4
   '@keplr-wallet/types': 0.10.3
@@ -501,7 +503,7 @@ packages:
     dev: false
 
   /brorand/1.1.0:
-    resolution: {integrity: sha1-EsJe/kCkXjwyPrhnWgoM5XsiNx8=}
+    resolution: {integrity: sha512-cKV8tMCEpQs4hK/ik71d6LrPOnpkpGBR0wzxqr68g2m/LB2GxVYQroAjMJZRVM1Y4BCjCKc3vAamxSzOY2RP+w==}
     dev: false
 
   /buffer/5.4.3:
@@ -884,7 +886,7 @@ packages:
     dev: false
 
   /hmac-drbg/1.0.1:
-    resolution: {integrity: sha1-0nRXAQJabHdabFRXk+1QL8DGSaE=}
+    resolution: {integrity: sha512-Tti3gMqLdZfhOQY1Mzf/AanLiqh1WTiJgEj26ZuYQ9fbkLomzGchCws4FyrSd4VkpBfiNhaE1On+lOz894jvXg==}
     dependencies:
       hash.js: 1.1.7
       minimalistic-assert: 1.0.1
@@ -1005,7 +1007,7 @@ packages:
     dev: false
 
   /minimalistic-crypto-utils/1.0.1:
-    resolution: {integrity: sha1-9sAMHAsIIkblxNmd+4x8CDsrWCo=}
+    resolution: {integrity: sha512-JIYlbt6g8i5jKfJ3xz7rF0LXmv2TkDxBLUkiBeZ7bAx4GnnNMr8xFpGnOxn6GhTEHx3SjRrZEoU+j04prX1ktg==}
     dev: false
 
   /miscreant/0.3.2:

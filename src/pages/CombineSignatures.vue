@@ -1,12 +1,14 @@
 <template>
   <h2>Combine signatures</h2>
   <div>
-    <CreateMultisig />
+    <Multisig />
     <CombineSignatures />
+    <BroadcastTx />
   </div>
 </template>
 
 <script setup lang="ts">
-import CreateMultisig from '@/components/CreateMultisig.vue'
+import Multisig from '@/components/Multisig.vue'
 import CombineSignatures from '@/components/CombineSignatures.vue'
+import BroadcastTx from '@/components/BroadcastTx.vue';
 </script>

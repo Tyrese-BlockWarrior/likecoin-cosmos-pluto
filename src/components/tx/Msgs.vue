@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h2>Msg List</h2>
+    <h3>Msg List</h3>
     <ul>
       <li v-for="(msg, i) in txStore.msgs">
         <button @click="txStore.removeMsg(i)">X</button>

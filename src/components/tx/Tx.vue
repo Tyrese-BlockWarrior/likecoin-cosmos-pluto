@@ -1,5 +1,6 @@
 <template>
   <div>
+    <h2>Tx</h2>
     <Msgs />
     <Fee />
     <div>

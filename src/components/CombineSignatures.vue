@@ -57,6 +57,7 @@ function combineSignatures() {
   }
   const sequence = Number.parseInt(signatures.value[0].sequence, 10);
   const txRaw = makeMultisignedTx(multisigPubKey.value!, sequence, txStore.stdFee, txStore.txBodyBytes, signaturesMap)
+  txStore.signedTxRaw = txRaw;
   combinedSignatureDisplay.value = encodeBase64(txRaw.signatures[0]);
 }
 
