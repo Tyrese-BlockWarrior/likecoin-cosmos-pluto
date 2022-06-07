@@ -11,21 +11,24 @@
 import { ref } from 'vue';
 import { MsgWithdrawDelegatorRewardEncodeObject } from '@cosmjs/stargate';
 
-import { useAccountStore, useTxStore } from '@/stores';
+import { useTxStore } from '@/stores';
+
+const props = defineProps<{
+  fromAddress: string
+}>();
 
 const validator = ref('');
 
-const accountStore = useAccountStore();
-const txStore = useTxStore();
+const store = useTxStore();
 
 function addMsg() {
   const msg: MsgWithdrawDelegatorRewardEncodeObject = {
     typeUrl: '/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward',
     value: {
-      delegatorAddress: accountStore.address,
+      delegatorAddress: props.fromAddress,
       validatorAddress: validator.value,
     },
   };
-  txStore.msgs.push(msg);
+  store.msgs.push(msg);
 }
 </script>

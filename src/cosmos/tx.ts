@@ -10,6 +10,8 @@ import {
 } from '@cosmjs/stargate';
 import { EncodeObject } from '@cosmjs/proto-signing';
 import { Coin, StdFee } from '@cosmjs/amino';
+import { sha256 } from "@cosmjs/crypto";
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { camelCaseToSnakeCaseObject, snakeCaseToCamelCaseObject } from '@/utils/utils';
 import { BECH32_PREFIX, DENOM, DENOM_EXPONENT } from '@/config';
@@ -105,4 +107,10 @@ export function parseUnsignedTxJSON(unsignedTx: UnsignedTxJSON): UnsignedTxCompo
     memo,
     fee: { amount: feeAmount, gasLimit, payer, granter },
   };
+}
+
+export function encodeTx(txRaw: TxRaw) {
+  const txBytes = TxRaw.encode(txRaw).finish();
+  const txHash = sha256(txBytes);
+  return { txBytes, txHash };
 }

@@ -3,29 +3,21 @@
   <h2>Keplr Login</h2>
   <div>
     <div>
-      Account address: {{ store.address || '-' }}
-    </div>
-    <div>
-      (sequence: {{ store.sequence }}, account number: {{ store.accountNumber }})
-    </div>
-    <div>
-      Signer address: {{ store.signerAddress || '-' }}
+      Signer address: {{ store.address || '-' }}
     </div>
   </div>
   <div>
     <button @click="readFromKeplr">Read from Keplr</button>
-    <button :disabled="store.address === ''" @click="store.readAccountChainInfo()">Re-read sequence</button>
   </div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { useAccountStore } from '@/stores';
+import { useSignerStore } from '@/stores';
 
-const store = useAccountStore();
+const store = useSignerStore();
 
 async function readFromKeplr() {
-  await store.getFromKeplr();
-  await store.readAccountChainInfo();
+  await store.getFromBrowserKeplr();
 }
 </script>

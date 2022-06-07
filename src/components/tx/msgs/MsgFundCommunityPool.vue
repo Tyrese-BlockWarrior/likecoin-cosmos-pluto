@@ -12,23 +12,26 @@
 import { ref } from 'vue';
 import { MsgFundCommunityPoolEncodeObject } from '@/cosmos/msgs';
 
-import { useAccountStore, useTxStore } from '@/stores';
+import { useTxStore } from '@/stores';
 import { humanAmountToDenomAmount } from '@/cosmos/tx';
 import { COIN_NAME } from '@/config';
 
+const props = defineProps<{
+  fromAddress: string
+}>();
+
 const amount = ref(0);
 
-const accountStore = useAccountStore();
-const txStore = useTxStore();
+const store = useTxStore();
 
 function addMsg() {
   const msg: MsgFundCommunityPoolEncodeObject = {
     typeUrl: '/cosmos.distribution.v1beta1.MsgFundCommunityPool',
     value: {
-      depositor: accountStore.address,
+      depositor: props.fromAddress,
       amount: [humanAmountToDenomAmount(amount.value)],
     },
   };
-  txStore.msgs.push(msg);
+  store.msgs.push(msg);
 }
 </script>

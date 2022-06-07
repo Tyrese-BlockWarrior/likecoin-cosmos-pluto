@@ -18,7 +18,7 @@
     </select>
     <div>
       <KeepAlive>
-        <component :is="msgComponents[selectedMsgComponent]" />
+        <component :is="msgComponents[selectedMsgComponent]" :from-address="props.fromAddress" />
       </KeepAlive>
     </div>
   </div>
@@ -37,6 +37,10 @@ import {
   MsgWithdrawDelegationReward,
   MsgFundCommunityPool,
 } from '@/components/tx/msgs';
+
+const props = defineProps<{
+  fromAddress: string
+}>();
 
 const txStore = useTxStore();
 

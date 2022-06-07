@@ -1,8 +1,10 @@
 import { StargateClient } from "@cosmjs/stargate";
-import { sha256 } from "@cosmjs/crypto";
+import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { RPC_ENDPOINT } from "@/config";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+
+import { encodeTx } from './tx';
+import { encodeHex } from "@/utils/utils";
 
 let stargateClient = null as StargateClient | null;
 
@@ -23,13 +25,12 @@ export async function readAccountChainInfo(address: string) {
 }
 
 export async function broadcastTx(txRaw: TxRaw) {
+  const { txBytes, txHash } = encodeTx(txRaw);
   const stargateClient = await initStargateClient();
-  const txBytes = TxRaw.encode(txRaw).finish();
-  const txHash = sha256(txBytes);
   const deliverTxPromise = stargateClient.broadcastTx(txBytes);
   return {
     txHash,
-    txID: Buffer.from(txHash).toString('hex').toUpperCase(),
+    txID: encodeHex(txHash),
     getResponse: async () => await deliverTxPromise,
   };
 }

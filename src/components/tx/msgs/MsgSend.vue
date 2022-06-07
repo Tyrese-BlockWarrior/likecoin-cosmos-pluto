@@ -14,25 +14,28 @@
 import { MsgSendEncodeObject } from '@cosmjs/stargate';
 import { ref } from 'vue';
 
-import { useAccountStore, useTxStore } from '@/stores';
+import { useTxStore } from '@/stores';
 import { humanAmountToDenomAmount } from '@/cosmos/tx';
 import { COIN_NAME } from '@/config';
+
+const props = defineProps<{
+  fromAddress: string
+}>();
 
 const toAddress = ref('');
 const amount = ref(0);
 
-const accountStore = useAccountStore();
-const txStore = useTxStore();
+const store = useTxStore();
 
 function addMsg() {
   const msg: MsgSendEncodeObject = {
     typeUrl: '/cosmos.bank.v1beta1.MsgSend',
     value: {
-      fromAddress: accountStore.address,
+      fromAddress: props.fromAddress,
       toAddress: toAddress.value,
       amount: [humanAmountToDenomAmount(amount.value)],
     },
   };
-  txStore.msgs.push(msg);
+  store.msgs.push(msg);
 }
 </script>

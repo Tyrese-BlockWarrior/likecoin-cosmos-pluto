@@ -1,26 +1,36 @@
 <template>
   <h2>Multisig wallet</h2>
-  <ul>
-    <li v-for="(accInfo, i) of displayMultisigners" v-bind:key="accInfo.address">
-      <button v-if="props.edit" @click="removePubKey(i)">X</button> {{ accInfo.keyholder || '(unnamed)' }}: {{ accInfo.address }} (public key: {{ accInfo.pubKey }})
-    </li>
-  </ul>
-  <div v-if="props.edit">
+  <div>
+    <h3>Wallet description</h3>
     <div>
-      Key holder: <input v-model.trim="inputKeyholder" placeholder="Key holder name"/>
+      Title: 
+      <input v-if="props.edit" type="text" v-model="multisigStore.title" placeholder="title" />
+      <span v-else>{{ multisigStore.title }}</span>
     </div>
     <div>
-      <input v-model.trim="inputPubKey" placeholder="Public key"/>
-    </div>
-    <div>
-      <button @click="addPubKey">Add</button>
+      Description:
+      <div>
+        <textarea v-if="props.edit" v-model="multisigStore.description" placeholder="description"></textarea>
+        <span v-else >{{ multisigStore.description }}</span>
+      </div>
     </div>
   </div>
+  <div>
+    <h3>Multisigner addresses</h3>
+    <ul>
+      <li v-for="(accInfo, i) of displayMultisigners" v-bind:key="accInfo.address">
+        <button v-if="props.edit" @click="removePubKey(i)">X</button> {{ accInfo.keyholder || '(unnamed)' }}: {{ accInfo.address }} (public key: {{ accInfo.pubKey }})
+      </li>
+    </ul>
+  </div>
   <div v-if="props.edit">
-    Current signing public key: {{ currentSignerPublicKey }}
-    <button :disabled="accountStore.signerAddress === ''" @click="addCurrentSigner">
-      Use this public key
-    </button>
+    <h3>Add multisigner address</h3>
+    <input v-model.trim="inputKeyholder" placeholder="Key holder name"/>
+    <input v-model.trim="inputPubKey" placeholder="Public key"/>
+    <button @click="addPubKey">Add</button>
+    <div>
+      <button @click="addCurrentSigner">Get my public key</button>
+    </div>
   </div>
   <div>
     <div v-if="props.edit">
@@ -34,39 +44,29 @@
     </div>
   </div>
   <div>
+    <h3>Multisig address info</h3>
+    <div>
+      Multisig address: {{ multisigAddress }}
+    </div>
     <div>
       Public Key: {{ multisigStore.pubKey ?? '-' }}
-    </div>
-      <div>
-        Multisig address: {{ multisigAddress }}
-      </div>
-    <div>
-      <button @click="importMultisigWallet">Import from JSON file</button>
-      <button :disabled="!multisigAddress" @click="exportMultisigWallet">Export as JSON file</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  MultisigThresholdPubkey,
-  pubkeyToAddress,
-} from '@cosmjs/amino';
+import { pubkeyToAddress } from '@cosmjs/amino';
 import { ref, computed } from 'vue';
 
-import { useAccountStore, useMultisigStore } from '@/stores';
+import { useSignerStore, useMultisigStore } from '@/stores';
 import { PubKey } from '@/cosmos/pubkey';
 import { BECH32_PREFIX } from '@/config';
-import {
-  selectAndImportFile,
-  generateFileAndDownload,
-} from '@/utils/utils';
 
 const props = defineProps<{
   edit?: boolean
 }>();
 
-const accountStore = useAccountStore();
+const signerStore = useSignerStore();
 const multisigStore = useMultisigStore();
 
 const displayMultisigners = computed(() => 
@@ -76,12 +76,6 @@ const displayMultisigners = computed(() =>
     pubKey: pubKey.toCosmosJSON(),
   }))
 );
-const currentSignerPublicKey = computed(() => {
-  if (!accountStore.signerPublicKey) {
-    return '-';
-  }
-  return accountStore.signerPublicKey.toCosmosJSON();
-})
 const multisigAddress = computed(() => {
   if (multisigStore.pubKey === null) {
     return '';
@@ -114,7 +108,7 @@ function addPubKey() {
 }
 
 function addCurrentSigner() {
-  inputPubKey.value = JSON.stringify(accountStore.signerPublicKey!.toCosmosJSON());
+  inputPubKey.value = JSON.stringify(signerStore.publicKey!.toCosmosJSON());
 }
 
 function generateMultisigPubKey() {
@@ -122,23 +116,5 @@ function generateMultisigPubKey() {
     throw new Error('Invalid threshold value');
   }
   multisigStore.generatePubKey();
-  updatePubKey();
-}
-
-async function importMultisigWallet() {
-  const content = await selectAndImportFile();
-  const multisignInfoJSON = JSON.parse(content);
-  multisigStore.import(multisignInfoJSON);
-  updatePubKey();
-}
-
-async function exportMultisigWallet() {
-  const multisignInfoJSON = multisigStore.export();
-  const content = JSON.stringify(multisignInfoJSON, null, 2);
-  generateFileAndDownload(content, 'multisign-info.json');
-}
-
-function updatePubKey() {
-  accountStore.updatePubKeyAndReadChain(new PubKey(multisigStore.pubKey!));
 }
 </script>

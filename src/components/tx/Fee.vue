@@ -29,15 +29,6 @@ watchEffect(() => {
   txStore.fee.gasLimit = inputGasLimit.value;
 });
 
-txStore.$onAction(({ name, after }) => {
-  after(() => {
-    if (name === 'importUnsignedTx') {
-      inputGasLimit.value = txStore.fee.gasLimit;
-      inputGasPrice.value = txStore.fee.amount / txStore.fee.gasLimit;
-    }
-  });
-});
-
 const displayedFee = computed(() => {
   return `${inputGasLimit.value * inputGasPrice.value / Math.pow(10, DENOM_EXPONENT)} ${COIN_NAME}`;
 });

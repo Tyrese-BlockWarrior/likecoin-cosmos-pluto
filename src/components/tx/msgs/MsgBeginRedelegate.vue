@@ -17,27 +17,30 @@
 import { ref } from 'vue';
 import { MsgBeginRedelegateEncodeObject } from '@/cosmos/msgs';
 
-import { useAccountStore, useTxStore } from '@/stores';
+import { useTxStore } from '@/stores';
 import { humanAmountToDenomAmount } from '@/cosmos/tx';
 import { COIN_NAME } from '@/config';
+
+const props = defineProps<{
+  fromAddress: string
+}>();
 
 const fromValidator = ref('');
 const toValidator = ref('');
 const amount = ref(0);
 
-const accountStore = useAccountStore();
-const txStore = useTxStore();
+const store = useTxStore();
 
 function addMsg() {
   const msg: MsgBeginRedelegateEncodeObject = {
     typeUrl: '/cosmos.staking.v1beta1.MsgBeginRedelegate',
     value: {
-      delegatorAddress: accountStore.address,
+      delegatorAddress: props.fromAddress,
       validatorSrcAddress: fromValidator.value,
       validatorDstAddress: toValidator.value,
       amount: humanAmountToDenomAmount(amount.value),
     },
   };
-  txStore.msgs.push(msg);
+  store.msgs.push(msg);
 }
 </script>

@@ -17,8 +17,7 @@
     "cosmjs-types": "^0.5.0",
     "long": "^5.2.0",
     "pinia": "^2.0.14",
-    "vue": "^3.2.25",
-    "vue-router": "4"
+    "vue": "^3.2.25"
   },
   "devDependencies": {
     "@types/node": "^17.0.35",

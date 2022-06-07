@@ -14,25 +14,28 @@
 import { MsgDelegateEncodeObject } from '@cosmjs/stargate';
 import { ref } from 'vue';
 
-import { useAccountStore, useTxStore } from '@/stores';
+import { useTxStore } from '@/stores';
 import { humanAmountToDenomAmount } from '@/cosmos/tx';
 import { COIN_NAME } from '@/config';
+
+const props = defineProps<{
+  fromAddress: string
+}>();
 
 const validator = ref('');
 const amount = ref(0);
 
-const accountStore = useAccountStore();
-const txStore = useTxStore();
+const store = useTxStore();
 
 function addMsg() {
   const msg: MsgDelegateEncodeObject = {
     typeUrl: '/cosmos.staking.v1beta1.MsgDelegate',
     value: {
-      delegatorAddress: accountStore.address,
+      delegatorAddress: props.fromAddress,
       validatorAddress: validator.value,
       amount: humanAmountToDenomAmount(amount.value),
     },
   };
-  txStore.msgs.push(msg);
+  store.msgs.push(msg);
 }
 </script>

@@ -17,37 +17,47 @@ function generatePubKey(multisigners: Multisigner[], threshold: number) {
   );
 }
 
-function generateExport(multisigners: Multisigner[], threshold: number) {
+function generateExport(title: string, description: string, multisigners: Multisigner[], threshold: number) {
   const pubKey = generatePubKey(multisigners, threshold);
   const address = pubkeyToAddress(pubKey, BECH32_PREFIX);
   return {
+    title,
+    description,
+    address,
+    pubKey,
     multisigners: multisigners.map(({ keyholder, pubKey }) => ({
       keyholder,
+      address: pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX),
       pubKey: pubKey.toCosmosJSON(),
     })),
     threshold,
-    pubKey,
-    address,
   };
 }
 
-export type MultisignInfoJSON = Pick<ReturnType<typeof generateExport>, 'multisigners' | 'threshold'>;
+export type MultisignInfoJSON = Pick<ReturnType<typeof generateExport>, 'multisigners' | 'threshold' | 'title' | 'description'>;
 
-export const useMultisigStore = defineStore("multisig", {
+export const useMultisigStore = defineStore('multisig', {
   state: () => ({
+    title: 'multisig-wallet',
+    description: '',
     multisigners: [] as Multisigner[],
     threshold: 0,
     pubKey: null as MultisigThresholdPubkey | null,
   }),
+  getters: {
+    address: (state) => state.pubKey ? pubkeyToAddress(state.pubKey, BECH32_PREFIX) : '-',
+  },
   actions: {
     generatePubKey() {
       this.pubKey = generatePubKey(this.multisigners, this.threshold);
       return this.pubKey;
     },
     export() {
-      return generateExport(this.multisigners, this.threshold);
+      return generateExport(this.title, this.description, this.multisigners, this.threshold);
     },
-    import({ multisigners, threshold }: MultisignInfoJSON) {
+    import({ title, description, multisigners, threshold }: MultisignInfoJSON) {
+      this.title = title;
+      this.description = description;
       this.multisigners = multisigners.map(({ keyholder, pubKey }) => ({
         keyholder,
         pubKey: PubKey.fromCosmosJSON(pubKey),

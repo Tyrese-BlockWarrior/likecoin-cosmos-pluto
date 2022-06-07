@@ -86,3 +86,8 @@ export function IsSameUint8Array(x: Uint8Array, y: Uint8Array) {
 export function isBech32(s: string) {
   return /^[\x21-\x7E]{1,83}1[ac-hj-np-z02-9]{6,}$/.test(s);
 }
+
+export function encodeHex(buf: Uint8Array) {
+  // from: https://stackoverflow.com/a/70790307/2392780
+  return buf.reduce((a, b) => a + b.toString(16).padStart(2, '0'), '').toUpperCase();
+}
