@@ -35,6 +35,10 @@
       <div>
         Tx hash: {{ txHashDisplay }}
       </div>
+      <div>
+        Result:
+        {{ broadcastResponse || broadcastError || '' }}
+      </div>
     </Step>
   </StepRoot>
 </template>
