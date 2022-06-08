@@ -28,10 +28,13 @@ export const useTxStore = defineStore("tx", {
       payer: "",
       granter: "",
     },
-    unsignedTxJSON: null as UnsignedTxJSON | null,
     signedTxRaw: null as TxRaw | null,
   }),
   getters: {
+    unsignedTxJSON: (state) => {
+      const { msgs, memo, fee } = state;
+      return generateUnsignedTxJSON({ msgs, memo, fee });
+    },
     aminoSignDoc: (state) =>
       (accountNumber: number, sequence: number): AminoSignDoc => ({
         account_number: accountNumber.toFixed(),
@@ -72,16 +75,11 @@ export const useTxStore = defineStore("tx", {
     clearMsgs() {
       this.msgs = [];
     },
-    generateUnsignedTxJSON() {
-      const { msgs, memo, fee } = this;
-      this.unsignedTxJSON = generateUnsignedTxJSON({ msgs, memo, fee });
-    },
     importUnsignedTx(unsignedTxJSON: UnsignedTxJSON) {
       const { msgs, memo, fee } = parseUnsignedTxJSON(unsignedTxJSON);
       this.msgs = msgs;
       this.memo = memo;
       this.fee = fee;
-      this.unsignedTxJSON = unsignedTxJSON;
     },
   },
 });

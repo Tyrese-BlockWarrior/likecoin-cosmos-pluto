@@ -8,9 +8,6 @@
       <input v-model.trim="txStore.memo" placeholder="Memo"/>
     </div>
     <div>
-      <button @click="txStore.generateUnsignedTxJSON()">Generate unsigned tx using the info above</button>
-    </div>
-    <div>
       <h3>Unsigned tx</h3>
       <UnsignedTx />
     </div>

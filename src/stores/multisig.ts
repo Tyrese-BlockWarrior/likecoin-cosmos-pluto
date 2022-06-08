@@ -57,12 +57,18 @@ export const useMultisigStore = defineStore('multisig', {
       }
       return title.toLowerCase().split(/\s+/).join('-');
     },
+    pubKey: (state) => {
+      if (state.threshold <= 0 || state.threshold > state.multisigners.length) {
+        return `Invalid multisig definition: invalid threshold`;
+      }
+      try {
+        return generatePubKey(state.multisigners, state.threshold);
+      } catch(err) {
+        return `Invalid multisig definition: ${err}`;
+      }
+    },
   },
   actions: {
-    generatePubKey() {
-      this.pubKey = generatePubKey(this.multisigners, this.threshold);
-      return this.pubKey;
-    },
     export() {
       return generateExport(this.title, this.description, this.multisigners, this.threshold);
     },
@@ -74,14 +80,12 @@ export const useMultisigStore = defineStore('multisig', {
         pubKey: PubKey.fromCosmosJSON(pubKey),
       }));
       this.threshold = threshold;
-      this.generatePubKey();
     },
     importFromCosmos(input: string) {
       const aminoPubKey = PubKey.fromStringInput(input).aminoPubKey;
       if (!isMultisigThresholdPubkey(aminoPubKey)) {
         throw new Error('Input public key is not a multisig public key');
       }
-      this.pubKey = aminoPubKey;
       this.title = '';
       this.description = '';
       this.multisigners = aminoPubKey.value.pubkeys.map((pubKey) => ({

@@ -44,9 +44,6 @@
     <div v-else>
       Multisig threshold: {{ multisigStore.threshold }}
     </div>
-    <div v-if="props.edit">
-      <button @click="generateMultisigPubKey">Generate multisig public key</button>
-    </div>
   </div>
   <div>
     <h3>Multisig address info</h3>
@@ -82,10 +79,11 @@ const displayMultisigners = computed(() =>
   }))
 );
 const multisigAddress = computed(() => {
-  if (multisigStore.pubKey === null) {
-    return '';
+  try {
+    return pubkeyToAddress(multisigStore.pubKey, BECH32_PREFIX);
+  } catch {
+    return '-';
   }
-  return pubkeyToAddress(multisigStore.pubKey, BECH32_PREFIX);
 });
 
 const inputPubKey = ref('');
@@ -109,12 +107,5 @@ function addPubKey(input: string) {
 
 function addCurrentSigner() {
   addPubKey(JSON.stringify(signerStore.publicKey!.toCosmosJSON()));
-}
-
-function generateMultisigPubKey() {
-  if (multisigStore.threshold <= 0 || multisigStore.threshold > multisigStore.multisigners.length) {
-    throw new Error('Invalid threshold value');
-  }
-  multisigStore.generatePubKey();
 }
 </script>
