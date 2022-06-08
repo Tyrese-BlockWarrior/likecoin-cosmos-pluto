@@ -19,17 +19,22 @@
     <h3>Multisigner addresses</h3>
     <ul>
       <li v-for="(accInfo, i) of displayMultisigners" v-bind:key="accInfo.address">
-        <button v-if="props.edit" @click="removePubKey(i)">X</button> {{ accInfo.keyholder || '(unnamed)' }}: {{ accInfo.address }} (public key: {{ accInfo.pubKey }})
+        <button v-if="props.edit" @click="removePubKey(i)">X</button>
+        <input v-if="props.edit" type="text" v-model="multisigStore.multisigners[i].keyholder" />
+        <span v-else>{{ accInfo.keyholder || '(unnamed)' }}</span>
+        : {{ accInfo.address }}
       </li>
     </ul>
   </div>
   <div v-if="props.edit">
-    <h3>Add multisigner address</h3>
-    <input v-model.trim="inputKeyholder" placeholder="Key holder name"/>
-    <input v-model.trim="inputPubKey" placeholder="Public key"/>
-    <button @click="addPubKey">Add</button>
+    <h3>Add multisigner public key</h3>
     <div>
-      <button @click="addCurrentSigner">Get my public key</button>
+      <input v-model.trim="inputPubKey" placeholder="Public key"/>
+      <button @click="addPubKey(inputPubKey)">Add</button>
+    </div>
+    <div>
+      Signer address: {{ signerStore.address }}
+      <button @click="addCurrentSigner">Add my signer public key</button>
     </div>
   </div>
   <div>
@@ -84,31 +89,26 @@ const multisigAddress = computed(() => {
 });
 
 const inputPubKey = ref('');
-const inputKeyholder = ref('');
 
 function removePubKey(i: number) {
   multisigStore.multisigners.splice(i, 1);
 }
 
-function addPubKey() {
-  const pubKey = PubKey.fromStringInput(inputPubKey.value);
+function addPubKey(input: string) {
+  const pubKey = PubKey.fromStringInput(input);
   const addr = pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX);
-  for (const { keyholder, pubKey: existingPubKey } of multisigStore.multisigners) {
-    if (inputKeyholder.value === keyholder && keyholder !== '') {
-      throw new Error('keyholder name already exist');
-    }
+  for (const { pubKey: existingPubKey } of multisigStore.multisigners) {
     const existingAddr = pubkeyToAddress(existingPubKey.aminoPubKey, BECH32_PREFIX);
     if (addr === existingAddr) {
       throw new Error('public key already exist');
     }
   }
-  multisigStore.multisigners.push({ keyholder: inputKeyholder.value, pubKey: pubKey });
+  multisigStore.multisigners.push({ keyholder: '', pubKey: pubKey });
   inputPubKey.value = '';
-  inputKeyholder.value = '';
 }
 
 function addCurrentSigner() {
-  inputPubKey.value = JSON.stringify(signerStore.publicKey!.toCosmosJSON());
+  addPubKey(JSON.stringify(signerStore.publicKey!.toCosmosJSON()));
 }
 
 function generateMultisigPubKey() {
