@@ -2,7 +2,7 @@
   <StepRoot>
     <Step>
       <h2>Step 1: Login Keplr</h2>
-      <Account />
+      <Signer />
     </Step>
     <Step>
       <h2>Step 2 (optional): Import existing multisig key</h2>
@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import Step from '@/components/Step.vue';
 import StepRoot from '@/components/StepRoot.vue';
-import Account from '@/components/Account.vue';
+import Signer from '@/components/Signer.vue';
 import ImportMultisig from '@/components/ImportMultisig.vue';
 import Multisig from '@/components/Multisig.vue';
 

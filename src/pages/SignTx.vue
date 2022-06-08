@@ -2,7 +2,7 @@
   <StepRoot>
     <Step>
       <h2>Step 1: Login Keplr</h2>
-      <Account />
+      <Signer />
     </Step>
     <Step>
       <h2>Step 2: Import multisig wallet info</h2>
@@ -23,7 +23,7 @@
         <div>
           Please check the multisig wallet definition, and also your signer (Keplr) account
         </div>
-        <Account />
+        <Signer />
       </div>
       <div>
         Signature: {{ displaySignature }}
@@ -46,7 +46,7 @@ import { ref, computed } from 'vue';
 
 import Step from '@/components/Step.vue';
 import StepRoot from '@/components/StepRoot.vue';
-import Account from '@/components/Account.vue';
+import Signer from '@/components/Signer.vue';
 import ImportMultisig from '@/components/ImportMultisig.vue';
 import UnsignedTx from '@/components/tx/UnsignedTx.vue';
 import ImportUnsignedTx from '@/components/tx/ImportUnsignedTx.vue';
