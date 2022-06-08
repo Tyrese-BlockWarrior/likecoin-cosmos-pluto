@@ -2,14 +2,13 @@
   <h1>Pluto</h1>
   <div>
     <div>Select a function</div>
-    <select v-model="selectedPage">
-      <option disabled="true">Select function</option>
-      <option v-for="(_, name) of pageComponents">
-        {{ name }}
-      </option>
-    </select>
     <div>
-      <component  v-if="selectedPage !== ''" :is="pageComponents[selectedPage]" />
+      <span v-for="(_, name) of pageComponents">
+        <button v-if="name !== ''" @click="selectedPage=name">{{ name }}</button>
+      </span>
+    </div>
+    <div>
+      <component v-if="selectedPage !== ''" :is="pageComponents[selectedPage]" />
     </div>
   </div>
 </template>
