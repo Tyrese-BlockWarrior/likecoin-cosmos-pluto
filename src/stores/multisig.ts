@@ -49,7 +49,14 @@ export const useMultisigStore = defineStore('multisig', {
     hasAddress: (state) => (address: string) =>
       state.pubKey === null ?
         false :
-        state.pubKey.value.pubkeys.some((pubKey) => pubkeyToAddress(pubKey, BECH32_PREFIX) === address)
+        state.pubKey.value.pubkeys.some((pubKey) => pubkeyToAddress(pubKey, BECH32_PREFIX) === address),
+    exportTitle: (state) => {
+      const title = state.title.trim();
+      if (!title) {
+        return 'multisig-wallet';
+      }
+      return title.toLowerCase().split(/\s+/).join('-');
+    },
   },
   actions: {
     generatePubKey() {

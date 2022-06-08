@@ -6,9 +6,13 @@ export const useStepStore = defineStore('step', {
     maxStep: 0,
   }),
   actions: {
-    setup(maxStep: number) {
+    reset() {
       this.currentStep = 1;
-      this.maxStep = maxStep;
+      this.maxStep = 0;
+    },
+    registerStep() {
+      this.maxStep += 1;
+      return this.maxStep;
     },
     goToPrevStep() {
       if (this.currentStep <= 1) {

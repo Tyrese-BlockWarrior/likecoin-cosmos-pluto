@@ -1,15 +1,15 @@
 <template>
-  <div class="step-outer-container" v-show="store.currentStep === props.step">
+  <div class="step-outer-container" v-show="store.currentStep === step">
     <div class="step-button-container">
-      <button :disabled="props.step === 1" @click="store.goToPrevStep()">Prev</button>
-      <button :disabled="props.step === store.maxStep" @click="store.goToNextStep()">Next</button>
+      <button :disabled="step === 1" @click="store.goToPrevStep()">Prev</button>
+      <button :disabled="step === store.maxStep" @click="store.goToNextStep()">Next</button>
     </div>
     <div class="step-inner-container">
       <slot></slot>
     </div>
     <div class="step-button-container">
-      <button :disabled="props.step === 1" @click="store.goToPrevStep()">Prev</button>
-      <button :disabled="props.step === store.maxStep" @click="store.goToNextStep()">Next</button>
+      <button :disabled="step === 1" @click="store.goToPrevStep()">Prev</button>
+      <button :disabled="step === store.maxStep" @click="store.goToNextStep()">Next</button>
     </div>
   </div>
 </template>
@@ -18,10 +18,7 @@
 import { useStepStore } from '@/stores';
 
 const store = useStepStore();
-
-const props = defineProps<{
-  step: number
-}>();
+const step = store.registerStep();
 </script>
 
 <style scoped>
