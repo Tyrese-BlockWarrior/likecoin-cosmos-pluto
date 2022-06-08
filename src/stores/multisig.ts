@@ -1,5 +1,5 @@
 import {
-  createMultisigThresholdPubkey, MultisigThresholdPubkey, pubkeyToAddress,
+  createMultisigThresholdPubkey, isMultisigThresholdPubkey, MultisigThresholdPubkey, pubkeyToAddress,
 } from "@cosmjs/amino";
 import { defineStore } from "pinia";
 import { PubKey } from "@/cosmos/pubkey";
@@ -64,6 +64,20 @@ export const useMultisigStore = defineStore('multisig', {
       }));
       this.threshold = threshold;
       this.generatePubKey();
+    },
+    importFromCosmos(input: string) {
+      const aminoPubKey = PubKey.fromStringInput(input).aminoPubKey;
+      if (!isMultisigThresholdPubkey(aminoPubKey)) {
+        throw new Error('Input public key is not a multisig public key');
+      }
+      this.pubKey = aminoPubKey;
+      this.title = '';
+      this.description = '';
+      this.multisigners = aminoPubKey.value.pubkeys.map((pubKey) => ({
+        keyholder: '',
+        pubKey: new PubKey(pubKey),
+      }));
+      this.threshold = Number.parseInt(aminoPubKey.value.threshold, 10);
     },
   },
 });
