@@ -14,7 +14,16 @@
   <Step :step="4">
     <h2>Step 4: Confirm tx content and sign tx</h2>
     <UnsignedTx />
-    <button @click="signTx">Sign tx</button>
+    <button :disabled="!hasSignerAddress" @click="signTx">Sign tx</button>
+    <div v-if="!hasSignerAddress">
+      <div>
+        Warning: current signer address ({{ signerStore.address }}) is not in multisig wallet public key
+      </div>
+      <div>
+        Please check the multisig wallet definition, and also your signer (Keplr) account
+      </div>
+      <Account />
+    </div>
     <div>
       Signature: {{ displaySignature }}
     </div>
@@ -58,7 +67,8 @@ const displaySignature = computed(() => {
     return '-';
   }
   return encodeBase64(signature.value.signature);
-})
+});
+const hasSignerAddress = computed(() => multisigStore.hasAddress(signerStore.address));
 
 async function signTx() {
   const { accountNumber, sequence } = await readAccountChainInfo(multisigStore.address);

@@ -46,6 +46,10 @@ export const useMultisigStore = defineStore('multisig', {
   }),
   getters: {
     address: (state) => state.pubKey ? pubkeyToAddress(state.pubKey, BECH32_PREFIX) : '-',
+    hasAddress: (state) => (address: string) =>
+      state.pubKey === null ?
+        false :
+        state.pubKey.value.pubkeys.some((pubKey) => pubkeyToAddress(pubKey, BECH32_PREFIX) === address)
   },
   actions: {
     generatePubKey() {
