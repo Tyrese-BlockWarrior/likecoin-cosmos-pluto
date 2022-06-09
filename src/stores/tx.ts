@@ -13,8 +13,9 @@ import {
   type UnsignedTxJSON,
   aminoTypes,
 toStdFee,
+amountToCoins,
 } from "@/cosmos/tx";
-import { CHAIN_ID, DENOM } from "@/config";
+import { CHAIN_ID } from "@/config";
 
 export const registry = new Registry(defaultRegistryTypes);
 
@@ -41,12 +42,7 @@ export const useTxStore = defineStore("tx", {
         sequence: sequence.toFixed(),
         chain_id: CHAIN_ID,
         fee: {
-          amount: [
-            {
-              amount: state.fee.amount.toFixed(),
-              denom: DENOM,
-            },
-          ],
+          amount: amountToCoins(state.fee.amount),
           gas: state.fee.gasLimit.toFixed(),
         },
         memo: state.memo,

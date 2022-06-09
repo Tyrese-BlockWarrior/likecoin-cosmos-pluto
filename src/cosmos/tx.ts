@@ -28,11 +28,18 @@ const aminoConverters = {
 
 export const aminoTypes = new AminoTypes(aminoConverters);
 
-export function humanAmountToDenomAmount(amount: number) {
-  return {
+export function amountToCoins(amount: number) {
+  if (amount === 0) {
+    return [];
+  }
+  return [{
+    amount: amount.toFixed(),
     denom: DENOM,
-    amount: (amount * Math.pow(10, DENOM_EXPONENT)).toFixed(),
-  };
+  }];
+}
+
+export function humanAmountToDenomAmount(amount: number) {
+  return amountToCoins(amount * Math.pow(10, DENOM_EXPONENT));
 }
 
 export type Fee = {
@@ -44,17 +51,10 @@ export type Fee = {
 
 export function toStdFee(fee: Fee) {
   const { gasLimit, amount } = fee;
-  const stdFee = {
+  return {
     gas: gasLimit.toString(),
-    amount: [] as Coin[],
-  };
-  if (amount > 0) {
-    stdFee.amount.push({
-      amount: amount.toString(),
-      denom: DENOM,
-    });
-  }
-  return stdFee as StdFee;
+    amount: amountToCoins(amount),
+  } as StdFee;
 }
 
 export type UnsignedTxComponents = {
@@ -78,10 +78,7 @@ export function generateUnsignedTxJSON({ msgs, memo, fee }: UnsignedTxComponents
     auth_info: {
       signer_infos: [],
       fee: {
-        amount: [{
-          denom: DENOM,
-          amount: fee.amount.toFixed(),
-        }],
+        amount: amountToCoins(fee.amount),
         gas_limit: fee.gasLimit.toFixed(),
         payer: fee.payer,
         granter: fee.granter,
