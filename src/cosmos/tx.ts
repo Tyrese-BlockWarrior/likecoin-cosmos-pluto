@@ -28,18 +28,22 @@ const aminoConverters = {
 
 export const aminoTypes = new AminoTypes(aminoConverters);
 
+export function amountToCoin(amount: number) {
+  return {
+    amount: amount.toFixed(),
+    denom: DENOM,
+  };
+}
+
 export function amountToCoins(amount: number) {
   if (amount === 0) {
     return [];
   }
-  return [{
-    amount: amount.toFixed(),
-    denom: DENOM,
-  }];
+  return [amountToCoin(amount)];
 }
 
 export function humanAmountToDenomAmount(amount: number) {
-  return amountToCoins(amount * Math.pow(10, DENOM_EXPONENT));
+  return amountToCoin(amount * Math.pow(10, DENOM_EXPONENT));
 }
 
 export type Fee = {
