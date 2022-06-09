@@ -23,6 +23,8 @@ import {
   CombineSignaturesAndBroadcastTx,
 } from '@/pages';
 
+import { useTxStore, useMultisigStore, useQueryStringStore } from './stores';
+
 const pageComponents = { 
   '': null,
   'Create multisig wallet': CreateMultisig,
@@ -32,4 +34,18 @@ const pageComponents = {
 } as const;
 
 const selectedPage = shallowRef('' as keyof typeof pageComponents);
+
+const txStore = useTxStore();
+const multisigStore = useMultisigStore();
+const queryStringStore = useQueryStringStore();
+
+const unsignedTxJSON = queryStringStore.consumeKey('tx');
+if (unsignedTxJSON) {
+  txStore.importUnsignedTx(unsignedTxJSON);
+}
+
+const multisigExportCompact = queryStringStore.consumeKey('multisig');
+if (multisigExportCompact) {
+  multisigStore.importCompact(multisigExportCompact);
+}
 </script>

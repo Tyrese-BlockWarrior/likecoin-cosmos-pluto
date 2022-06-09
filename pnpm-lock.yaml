@@ -6,11 +6,13 @@ specifiers:
   '@cosmjs/proto-signing': ^0.28.4
   '@cosmjs/stargate': ^0.28.4
   '@keplr-wallet/types': ^0.10.3
-  '@protobufjs/base64': ^1.1.2
   '@types/node': ^17.0.35
+  '@types/pako': ^2.0.0
   '@vitejs/plugin-vue': ^2.3.1
   cosmjs-types: ^0.5.0
+  js-base64: ^3.7.2
   long: ^5.2.0
+  pako: ^2.0.4
   pinia: ^2.0.14
   typescript: ^4.5.4
   vite: ^2.9.7
@@ -23,14 +25,16 @@ dependencies:
   '@cosmjs/proto-signing': 0.28.4
   '@cosmjs/stargate': 0.28.4
   '@keplr-wallet/types': 0.10.3
-  '@protobufjs/base64': 1.1.2
   cosmjs-types: 0.5.0
+  js-base64: 3.7.2
   long: 5.2.0
+  pako: 2.0.4
   pinia: 2.0.14_ytvqwwdyss532bvoq2clv4ed5m
   vue: 3.2.33
 
 devDependencies:
   '@types/node': 17.0.35
+  '@types/pako': 2.0.0
   '@vitejs/plugin-vue': 2.3.2_vite@2.9.8+vue@3.2.33
   typescript: 4.6.4
   vite: 2.9.8
@@ -340,6 +344,10 @@ packages:
 
   /@types/node/17.0.35:
     resolution: {integrity: sha512-vu1SrqBjbbZ3J6vwY17jBs8Sr/BKA+/a/WtjRG+whKg1iuLFOosq872EXS0eXWILdO36DHQQeku/ZcL6hz2fpg==}
+
+  /@types/pako/2.0.0:
+    resolution: {integrity: sha512-10+iaz93qR5WYxTo+PMifD5TSxiOtdRaxBf7INGGXMQgTCu8Z/7GYWYFUOS3q/G0nE5boj1r4FEB+WSy7s5gbA==}
+    dev: true
 
   /@vitejs/plugin-vue/2.3.2_vite@2.9.8+vue@3.2.33:
     resolution: {integrity: sha512-umyypfSHS4kQLdYAnJHhaASq7FRzNCdvcRoQ3uYGNk1/M4a+hXUd7ysN7BLhCrWH6uBokyCkFeUAaFDzSaaSrQ==}
@@ -917,6 +925,10 @@ packages:
       ws: 7.5.7
     dev: false
 
+  /js-base64/3.7.2:
+    resolution: {integrity: sha512-NnRs6dsyqUXejqk/yv2aiXlAvOs56sLkX6nUdeaNezI5LFFLlsZjOThmwnrcwh5ZZRwZlCMnVAY3CvhIhoVEKQ==}
+    dev: false
+
   /js-crypto-env/0.3.2:
     resolution: {integrity: sha512-F1uHiCkSOo36qBuuZABA4sBf+xeFBzhJZ0Sd7af8FAruszIhm1Xxv+Zr5Ne90Zlh7/fnxCsrdkj0N8f0a3lVlQ==}
     dev: false
@@ -1024,6 +1036,10 @@ packages:
 
   /pako/1.0.11:
     resolution: {integrity: sha512-4hLB8Py4zZce5s4yd9XzopqwVv/yGNhV1Bl8NTmCq1763HeK2+EwVTv+leGeL13Dnh2wfbqowVPXCIO0z4taYw==}
+    dev: false
+
+  /pako/2.0.4:
+    resolution: {integrity: sha512-v8tweI900AUkZN6heMU/4Uy4cXRc2AYNRggVmTR+dEncawDJgCdLMximOVA2p4qO57WMynangsfGRb5WD6L1Bg==}
     dev: false
 
   /path-parse/1.0.7:

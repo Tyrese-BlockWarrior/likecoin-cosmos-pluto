@@ -1,7 +1,8 @@
+import { defineStore } from "pinia";
+
 import {
   OfflineAminoSigner, pubkeyToAddress,
 } from "@cosmjs/amino";
-import { defineStore } from "pinia";
 import { OfflineDirectSigner } from '@cosmjs/proto-signing';
 import { loadKeplr } from "@/keplr";
 import { PubKey } from "@/cosmos/pubkey";

@@ -1,7 +1,8 @@
+import { defineStore } from "pinia";
+
 import {
   createMultisigThresholdPubkey, isMultisigThresholdPubkey, MultisigThresholdPubkey, pubkeyToAddress,
 } from "@cosmjs/amino";
-import { defineStore } from "pinia";
 import { PubKey } from "@/cosmos/pubkey";
 import { BECH32_PREFIX } from "@/config";
 
@@ -42,14 +43,17 @@ export const useMultisigStore = defineStore('multisig', {
     description: '',
     multisigners: [] as Multisigner[],
     threshold: 0,
-    pubKey: null as MultisigThresholdPubkey | null,
   }),
   getters: {
-    address: (state) => state.pubKey ? pubkeyToAddress(state.pubKey, BECH32_PREFIX) : '-',
-    hasAddress: (state) => (address: string) =>
-      state.pubKey === null ?
-        false :
-        state.pubKey.value.pubkeys.some((pubKey) => pubkeyToAddress(pubKey, BECH32_PREFIX) === address),
+    address(): string {
+      return this.pubKey ? pubkeyToAddress(this.pubKey, BECH32_PREFIX) : "-";
+    } ,
+    hasAddress(): (address: string) => boolean {
+      return (address) =>
+        this.pubKey === null ?
+          false :
+          this.pubKey.value.pubkeys.some((pubKey) => pubkeyToAddress(pubKey, BECH32_PREFIX) === address);
+    },
     exportTitle: (state) => {
       const title = state.title.trim();
       if (!title) {
@@ -57,20 +61,45 @@ export const useMultisigStore = defineStore('multisig', {
       }
       return title.toLowerCase().split(/\s+/).join('-');
     },
-    pubKey: (state) => {
+    pubKeyWithError: (state) => {
       if (state.threshold <= 0 || state.threshold > state.multisigners.length) {
-        return `Invalid multisig definition: invalid threshold`;
+        return { error: new Error('invalid multisig threshold') };
       }
       try {
         return generatePubKey(state.multisigners, state.threshold);
-      } catch(err) {
-        return `Invalid multisig definition: ${err}`;
+      } catch (error) {
+        return { error };
       }
     },
+    pubKey(): MultisigThresholdPubkey | null {
+      const pubKey = this.pubKeyWithError as any;
+      if (!pubKey.error) {
+        return pubKey as MultisigThresholdPubkey;
+      }
+      return null;
+    },
+    export: (state) => () => generateExport(state.title, state.description, state.multisigners, state.threshold),
+    exportCompact: (state) => () => [
+      state.title,
+      state.description,
+      state.multisigners.map(({ keyholder, pubKey }) => {
+        const { '@type': type, ...value } = pubKey.toCosmosJSON();
+        return [keyholder, type, value];
+      }),
+      state.threshold,
+    ],
   },
   actions: {
-    export() {
-      return generateExport(this.title, this.description, this.multisigners, this.threshold);
+    importCompact(data: any[]) {
+      const [title, description, multisigners, threshold] = data;
+      this.title = title;
+      this.description = description;
+      this.multisigners = multisigners.map(([keyholder, type, value]: any[]) => {
+        const cosmosPubKeyJSON = { '@type': type, ...value };
+        const pubKey = PubKey.fromCosmosJSON(cosmosPubKeyJSON);
+        return { keyholder, pubKey };
+      });
+      this.threshold = threshold;
     },
     import({ title, description, multisigners, threshold }: MultisignInfoJSON) {
       this.title = title;

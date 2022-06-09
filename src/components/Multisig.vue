@@ -51,7 +51,7 @@
       Multisig address: {{ multisigAddress }}
     </div>
     <div>
-      Public Key: {{ multisigStore.pubKey ?? '-' }}
+      Public Key: {{ multisigPubKey }}
     </div>
   </div>
 </template>
@@ -78,12 +78,18 @@ const displayMultisigners = computed(() =>
     pubKey: pubKey.toCosmosJSON(),
   }))
 );
+const multisigPubKey = computed(() => {
+  const pubKey = multisigStore.pubKeyWithError as any;
+  if (pubKey.error) {
+    return pubKey.error;
+  }
+  return pubKey;
+})
 const multisigAddress = computed(() => {
-  try {
-    return pubkeyToAddress(multisigStore.pubKey, BECH32_PREFIX);
-  } catch {
+  if (multisigStore.pubKey === null) {
     return '-';
   }
+  return pubkeyToAddress(multisigStore.pubKey, BECH32_PREFIX);
 });
 
 const inputPubKey = ref('');

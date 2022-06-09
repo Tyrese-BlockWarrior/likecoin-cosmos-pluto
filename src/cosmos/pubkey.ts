@@ -9,7 +9,7 @@ import {
   isMultisigThresholdPubkey,
 } from '@cosmjs/amino';
 import { encodeBase64, isBech32 } from '@/utils/utils';
-import { test as testBase64 } from '@protobufjs/base64';
+import { isValid as testBase64 } from 'js-base64';
 
 const typeUrls = {
   secp256k1: '/cosmos.crypto.secp256k1.PubKey',
