@@ -1,54 +1,39 @@
 <template>
-  <StepRoot>
-    <Step>
-      <h2>Step 1: Login Keplr</h2>
-      <Signer />
-    </Step>
-    <Step>
-      <h2>Step 2: Import multisig wallet info</h2>
-      <ImportMultisig />
-    </Step>
-    <Step>
-      <h2>Step 3: Import unsigned tx</h2>
-      <ImportUnsignedTx />
-    </Step>
-    <Step>
-      <h2>Step 4: Confirm tx content and sign tx</h2>
-      <UnsignedTx />
-      <button :disabled="!hasSignerAddress" @click="signTx">Sign tx</button>
-      <div v-if="!hasSignerAddress">
-        <div>
-          Warning: current signer address ({{ signerStore.address }}) is not in multisig wallet public key
-        </div>
-        <div>
-          Please check the multisig wallet definition, and also your signer (Keplr) account
-        </div>
-        <Signer />
-      </div>
-      <div>
-        Signature: {{ displaySignature }}
-      </div>
-    </Step>
-    <Step>
-      <h2>Step 5: Export signature</h2>
-      <div>
-        Signature: {{ displaySignature }}
-      </div>
-      <div>
-        <button @click="exportSignature">Export</button>
-      </div>
-    </Step>
-  </StepRoot>
+  <h2>Confirm tx content and sign tx</h2>
+  <div>
+    <h3>Wallet info</h3>
+    <Multisig />
+  </div>
+  <div>
+    <h3>Transaction info</h3>
+    <ImportUnsignedTx />
+  </div>
+  <div>
+    <h3>Signer info</h3>
+    <Signer />
+  </div>
+  <button :disabled="!hasSignerAddress" @click="signTx">Sign tx</button>
+  <div v-if="!hasSignerAddress">
+    <div>
+      Current signer address is not in multisig wallet public key.
+    </div>
+    <div>
+      Please check the multisig wallet definition, and also your signer (Keplr) account.
+    </div>
+  </div>
+  <div>
+    Signature: <code>{{ displaySignature }}</code>
+  </div>
+  <div v-if="signature">
+    If download was not start automatically, <button @click="exportSignature">click here</button> to download the signature
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 
-import Step from '@/components/Step.vue';
-import StepRoot from '@/components/StepRoot.vue';
 import Signer from '@/components/Signer.vue';
-import ImportMultisig from '@/components/ImportMultisig.vue';
-import UnsignedTx from '@/components/tx/UnsignedTx.vue';
+import Multisig from '@/components/Multisig.vue';
 import ImportUnsignedTx from '@/components/tx/ImportUnsignedTx.vue';
 
 import { readAccountChainInfo } from '@/cosmos/client';
@@ -71,9 +56,14 @@ const displaySignature = computed(() => {
 const hasSignerAddress = computed(() => multisigStore.hasAddress(signerStore.address));
 
 async function signTx() {
+  await signerStore.init();
+  if (!multisigStore.hasAddress(signerStore.address)) {
+    throw new Error(`Signer address (${signerStore.address}) not in multisig wallet (${multisigStore.address})`);
+  }
   const { accountNumber, sequence } = await readAccountChainInfo(multisigStore.address);
   const aminoSignDoc = txStore.aminoSignDoc(accountNumber, sequence);
   signature.value = await signTxAmino(signerStore.offlineSigner!, signerStore.address, aminoSignDoc);
+  exportSignature();
 }
 
 function exportSignature() {

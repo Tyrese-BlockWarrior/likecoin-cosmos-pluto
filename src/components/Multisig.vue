@@ -1,58 +1,28 @@
 <template>
-  <h2>Multisig wallet</h2>
   <div>
-    <h3>Wallet description</h3>
     <div>
-      Title: 
-      <input v-if="props.edit" type="text" v-model="multisigStore.title" placeholder="title" />
-      <span v-else>{{ multisigStore.title }}</span>
+      Title: {{ store.title }} (<code>{{ multisigAddress }}</code>)
     </div>
     <div>
-      Description:
-      <div>
-        <textarea v-if="props.edit" v-model="multisigStore.description" placeholder="description"></textarea>
-        <span v-else >{{ multisigStore.description }}</span>
-      </div>
+      <input type="checkbox" v-model="shouldDisplayDetails" /> Display multisig wallet details
     </div>
   </div>
-  <div>
-    <h3>Multisigner addresses</h3>
-    <ul>
-      <li v-for="(accInfo, i) of displayMultisigners" v-bind:key="accInfo.address">
-        <button v-if="props.edit" @click="removePubKey(i)">X</button>
-        <input v-if="props.edit" type="text" v-model="multisigStore.multisigners[i].keyholder" />
-        <span v-else>{{ accInfo.keyholder || '(unnamed)' }}</span>
-        : {{ accInfo.address }}
-      </li>
-    </ul>
-  </div>
-  <div v-if="props.edit">
-    <h3>Add multisigner public key</h3>
+  <div v-if="shouldDisplayDetails">
     <div>
-      <input v-model.trim="inputPubKey" placeholder="Public key"/>
-      <button @click="addPubKey(inputPubKey)">Add</button>
+      Description: <pre>{{ store.description.trim() || '(N/A)' }}</pre>
     </div>
     <div>
-      Signer address: {{ signerStore.address }}
-      <button @click="addCurrentSigner">Add my signer public key</button>
+      Multisigners:
+      <ul>
+        <li v-for="({keyholder, address}) of displayMultisigners">
+          {{ keyholder }} (<code>{{ address }}</code>)
+        </li>
+      </ul>
     </div>
+    Threshold: {{ store.threshold }}-of-{{ store.multisigners.length }}
   </div>
   <div>
-    <div v-if="props.edit">
-      Multisig threshold: <input v-model.number="multisigStore.threshold" placeholder="multisig threshold"/>
-    </div>
-    <div v-else>
-      Multisig threshold: {{ multisigStore.threshold }}
-    </div>
-  </div>
-  <div>
-    <h3>Multisig address info</h3>
-    <div>
-      Multisig address: {{ multisigAddress }}
-    </div>
-    <div>
-      Public Key: {{ multisigPubKey }}
-    </div>
+    (Not this multisig wallet? <button @click="importMultisigFromFile">Import from file</button> )
   </div>
 </template>
 
@@ -60,58 +30,30 @@
 import { pubkeyToAddress } from '@cosmjs/amino';
 import { ref, computed } from 'vue';
 
-import { useSignerStore, useMultisigStore } from '@/stores';
-import { PubKey } from '@/cosmos/pubkey';
+import { useMultisigStore } from '@/stores';
+import { selectAndImportFile } from '@/utils/utils';
 import { BECH32_PREFIX } from '@/config';
 
-const props = defineProps<{
-  edit?: boolean
-}>();
-
-const signerStore = useSignerStore();
-const multisigStore = useMultisigStore();
+const store = useMultisigStore();
 
 const displayMultisigners = computed(() => 
-  multisigStore.multisigners.map(({ keyholder, pubKey }) => ({
+  store.multisigners.map(({ keyholder, pubKey }) => ({
     keyholder,
     address: pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX),
-    pubKey: pubKey.toCosmosJSON(),
   }))
 );
-const multisigPubKey = computed(() => {
-  const pubKey = multisigStore.pubKeyWithError as any;
-  if (pubKey.error) {
-    return pubKey.error;
-  }
-  return pubKey;
-})
 const multisigAddress = computed(() => {
-  if (multisigStore.pubKey === null) {
+  if (store.pubKey === null) {
     return '-';
   }
-  return pubkeyToAddress(multisigStore.pubKey, BECH32_PREFIX);
+  return pubkeyToAddress(store.pubKey, BECH32_PREFIX);
 });
 
-const inputPubKey = ref('');
+const shouldDisplayDetails = ref(false);
 
-function removePubKey(i: number) {
-  multisigStore.multisigners.splice(i, 1);
-}
-
-function addPubKey(input: string) {
-  const pubKey = PubKey.fromStringInput(input);
-  const addr = pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX);
-  for (const { pubKey: existingPubKey } of multisigStore.multisigners) {
-    const existingAddr = pubkeyToAddress(existingPubKey.aminoPubKey, BECH32_PREFIX);
-    if (addr === existingAddr) {
-      throw new Error('public key already exist');
-    }
-  }
-  multisigStore.multisigners.push({ keyholder: '', pubKey: pubKey });
-  inputPubKey.value = '';
-}
-
-function addCurrentSigner() {
-  addPubKey(JSON.stringify(signerStore.publicKey!.toCosmosJSON()));
+async function importMultisigFromFile() {
+  const content = await selectAndImportFile();
+  const multisignInfoJSON = JSON.parse(content);
+  store.import(multisignInfoJSON);
 }
 </script>

@@ -1,40 +1,34 @@
 <template>
-  <StepRoot>
-    <Step>
-      <h2>Step 1: Login Keplr</h2>
-      <Signer />
-    </Step>
-    <Step>
-      <h2>Step 2 (optional): Import existing multisig key</h2>
+  <h2>Create multisig wallet</h2>
+  <div>
+    <EditMultisig />
+    <div v-if="store.pubKey">
       <div>
-        If you have existing multisig public key (from liked CLI or from previously exported multisig definition), please import here and modify at the next step.
-        Otherwise simply click "Next".
+        Use this URL for creating transactions in the future: <a :href="exportURL">{{ exportURL }}</a>
       </div>
-      <ImportMultisig />
-    </Step>
-    <Step>
-      <h2>Step 3: Input multisig wallet Info</h2>
-      <Multisig :edit="true" />
-    </Step>
-    <Step>
-      <h2>Step 4: Confirm and export multisig wallet definition as JSON file</h2>
-      <button @click="exportMultisigWallet">Confirm and export</button>
-      <Multisig />
-    </Step>
-  </StepRoot>
+      <div>
+        <button @click="exportMultisigWallet">Export multisig wallet definition as file</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import Step from '@/components/Step.vue';
-import StepRoot from '@/components/StepRoot.vue';
-import Signer from '@/components/Signer.vue';
-import ImportMultisig from '@/components/ImportMultisig.vue';
-import Multisig from '@/components/Multisig.vue';
+import { computed } from 'vue';
+
+import EditMultisig from '@/components/EditMultisig.vue';
 
 import { useMultisigStore } from '@/stores';
+import { encode as encodeQueryString } from '@/stores/querystring';
 import { generateFileAndDownload, } from '@/utils/utils';
 
 const store = useMultisigStore();
+
+const exportURL = computed(() => {
+  const multisigExportQS = encodeQueryString('multisig', store.exportCompact());
+  const { protocol, host, pathname } = window.location;
+  return `${protocol}//${host}${pathname}?${multisigExportQS}`;
+});
 
 async function exportMultisigWallet() {
   const multisignInfoJSON = store.export();

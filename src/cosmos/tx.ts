@@ -9,7 +9,7 @@ import {
   createStakingAminoConverters,
 } from '@cosmjs/stargate';
 import { EncodeObject } from '@cosmjs/proto-signing';
-import { Coin, StdFee } from '@cosmjs/amino';
+import { StdFee } from '@cosmjs/amino';
 import { sha256 } from "@cosmjs/crypto";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 

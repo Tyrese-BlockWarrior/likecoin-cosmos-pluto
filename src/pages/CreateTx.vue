@@ -1,34 +1,30 @@
 <template>
-  <StepRoot>
-    <Step>
-      <h2>Step 1: Import multisig wallet Info</h2>
-      <ImportMultisig />
-    </Step>
-    <Step>
-      <h2>Step 2: Construct tx</h2>
-      <ConstructTx />
-    </Step>
-    <Step>
-      <h2>Step 3: Confirm tx content and export unsigned tx</h2>
-      <UnsignedTx />
-      <div>
-        <button :disabled="txStore.unsignedTxJSON === null" @click="exportUnsignedTx">Export unsigned tx as file</button>
-      </div>
-      <div>
-        Or simply use this URL: <a :href="exportURL">{{ exportURL }}</a>
-      </div>
-    </Step>
-  </StepRoot>
+  <h2>Create transaction</h2>
+  <div v-if="!afterCreate">
+    <Multisig />
+    <ConstructTx />
+    <button @click="afterCreate=true">Create!</button>
+  </div>
+  <div v-else>
+    Here is the transaction content:
+    <pre>{{ JSON.stringify(txStore.unsignedTxJSON, null, 2) }}</pre>
+    <div>
+      (Something wrong in the tx?<button @click="afterCreate=false">Go back</button>)
+    </div>
+    <div>
+      Share this URL for signing using Pluto: <a :href="exportURL">{{ exportURL }}</a>
+    </div>
+    <div>
+      If some multisigners prefer using CLI, you may <button :disabled="txStore.unsignedTxJSON === null" @click="exportUnsignedTx">export unsigned tx as file</button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 
-import Step from '@/components/Step.vue';
-import StepRoot from '@/components/StepRoot.vue';
-import ImportMultisig from '@/components/ImportMultisig.vue';
+import Multisig from '@/components/Multisig.vue';
 import ConstructTx from '@/components/tx/ConstructTx.vue';
-import UnsignedTx from '@/components/tx/UnsignedTx.vue';
 
 import { useTxStore, useMultisigStore } from '@/stores';
 import { encode as encodeQueryString } from '@/stores/querystring';
@@ -36,6 +32,8 @@ import { generateFileAndDownload } from '@/utils/utils';
 
 const txStore = useTxStore();
 const multisigStore = useMultisigStore();
+
+const afterCreate = ref(false);
 
 const exportURL = computed(() => {
   const multisigExportQS = encodeQueryString('multisig', multisigStore.exportCompact());

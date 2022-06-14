@@ -109,11 +109,13 @@ export class SingleSignature {
   pubKey: PubKey
   signature: Uint8Array
   sequence: string
+  keyholder?: string
 
-  constructor(pubKey: PubKey, signature: Uint8Array, sequence: string) {
+  constructor(pubKey: PubKey, signature: Uint8Array, sequence: string, keyholder?: string) {
     this.pubKey = pubKey;
     this.signature = signature;
     this.sequence = sequence;
+    this.keyholder = keyholder;
   }
 
   address() {
@@ -131,6 +133,7 @@ export class SingleSignature {
           },
         },
         sequence: this.sequence,
+        keyholder: this.keyholder,
       }],
     };
   }
@@ -144,8 +147,8 @@ export class SingleSignature {
     const sig = json.signatures[0];
     const pubKey = PubKey.fromCosmosJSON(sig.public_key);
     const signature = decodeBase64(sig.data.single.signature);
-    const { sequence } = sig;
-    return new SingleSignature(pubKey, signature, sequence);
+    const { sequence, keyholder } = sig;
+    return new SingleSignature(pubKey, signature, sequence, keyholder);
   }
 };
 

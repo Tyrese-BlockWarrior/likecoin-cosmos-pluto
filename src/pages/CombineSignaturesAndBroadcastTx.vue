@@ -1,54 +1,46 @@
 <template>
-  <StepRoot>
-
-    <Step>
-      <h2>Step 1: Import multisig wallet info</h2>
-      <ImportMultisig />
-    </Step>
-    <Step>
-      <h2>Step 2: Import unsigned tx</h2>
+  <div>
+    <h2>Combine signatures and broadcast transaction</h2>
+    <div>
+      <h3>Wallet info</h3>
+      <Multisig />
+    </div>
+    <div>
+      <h3>Transaction info</h3>
       <ImportUnsignedTx />
-    </Step>
-    <Step>
-      <h2>Step 3: Import and combine signatures</h2>
+    </div>
+    <div>
+      <button @click="importSignatures">Import and combine signatures from files</button>
+    </div>
+    <div>
+      <h3>Imported signatures</h3>
+      <ul>
+        <li v-for="signature of signaturesDisplay" v-bind:key="signature.address">
+          {{ signature.keyholder }} (<code>{{ signature.address }}</code>): <code>{{ signature.signatureBase64 }}</code>
+        </li>
+      </ul>
       <div>
-        <button @click="importSignatures">Import and combine signatures from files</button>
-        <div v-for="signature of signatures" v-bind:key="signature.address()">
-          {{ signature }}
-        </div>
-        <div>
-          Combined signature: {{ combinedSignatureDisplay }}
-        </div>
+        Combined signature: <code>{{ combinedSignatureDisplay }}</code>
       </div>
-    </Step>
-    <Step>
-      <h2>Step 4: Broadcast tx</h2>
+    </div>
+    <div>
+      <button :disabled="txStore.signedTxRaw === null || txStore.signedTxRaw.signatures[0].length === 0" @click="broadcastTx">Broadcast</button>
+    </div>
+    <div v-if="txHashDisplay">
       <div>
-        Tx: {{ txStore.unsignedTxJSON }}
-      </div>
-      <div>
-        Combined signature: {{ combinedSignatureDisplay }}
-      </div>
-      <div>
-        <button @click="broadcastTx">Broadcast</button>
+        Tx hash: <code>{{ txHashDisplay }}</code>
       </div>
       <div>
-        Tx hash: {{ txHashDisplay }}
+        Result: <code>{{ broadcastResponse || broadcastError || 'pending...' }}</code>
       </div>
-      <div>
-        Result:
-        {{ broadcastResponse || broadcastError || '' }}
-      </div>
-    </Step>
-  </StepRoot>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 
-import Step from '@/components/Step.vue';
-import StepRoot from '@/components/StepRoot.vue';
-import ImportMultisig from '@/components/ImportMultisig.vue';
+import Multisig from '@/components/Multisig.vue';
 import ImportUnsignedTx from '@/components/tx/ImportUnsignedTx.vue';
 
 import { makeMultisignedTx, DeliverTxResponse  } from '@cosmjs/stargate';
@@ -64,6 +56,13 @@ const multisigStore = useMultisigStore();
 const txStore = useTxStore();
 
 const signatures = ref([] as SingleSignature[]);
+const signaturesDisplay = computed(() => 
+  signatures.value.map((signature) => ({
+    keyholder: signature.keyholder ?? '(unnamed)',
+    address: signature.address(),
+    signatureBase64: encodeBase64(signature.signature),
+  }))
+);
 const combinedSignatureDisplay = computed(() => {
   if (txStore.signedTxRaw === null) {
     return '-';

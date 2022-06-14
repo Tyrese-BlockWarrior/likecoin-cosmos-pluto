@@ -4,7 +4,7 @@ import {
   OfflineAminoSigner, pubkeyToAddress,
 } from "@cosmjs/amino";
 import { OfflineDirectSigner } from '@cosmjs/proto-signing';
-import { loadKeplr } from "@/keplr";
+import { loadKeplr, registerKeplrKeystoreChangeCallback } from "@/keplr";
 import { PubKey } from "@/cosmos/pubkey";
 
 import { BECH32_PREFIX, CHAIN_ID } from "@/config";
@@ -13,11 +13,18 @@ export const useSignerStore = defineStore('signer', {
   state: () => ({
     offlineSigner: null as (OfflineDirectSigner & OfflineAminoSigner) | null,
     publicKey: null as PubKey | null,
+    inited: false,
   }),
   getters: {
     address: (state) => state.publicKey === null ? '' : pubkeyToAddress(state.publicKey.aminoPubKey, BECH32_PREFIX),
   },
   actions: {
+    async init() {
+      if (!this.inited) {
+        registerKeplrKeystoreChangeCallback(() => this.getFromBrowserKeplr());
+        this.inited = true;
+      }
+    },
     async getFromBrowserKeplr() {
       const keplr = await loadKeplr(CHAIN_ID, {
         disableBalanceCheck: true,
