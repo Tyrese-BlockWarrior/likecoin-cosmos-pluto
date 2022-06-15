@@ -8,8 +8,8 @@ Aimed to be a small tool, not as big as a star, so named Pluto.
 
 ## Development
 
-Run `pnpm install -D` for installing dependencies and development tools.
+Run `yarn` for installing dependencies and development tools.
 
-Run `pnpm run dev` for development server.
+Run `yarn dev` for development server.
 
-Run `pnpm build` for bundling the files.
+Run `yarn build` for bundling the files.
