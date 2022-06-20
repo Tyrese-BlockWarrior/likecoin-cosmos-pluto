@@ -5,6 +5,7 @@ import {
   CreateTx,
   SignTx,
   CombineSignaturesAndBroadcastTx,
+  Authz,
 } from '@/pages';
 
 export const routes = [
@@ -32,6 +33,11 @@ export const routes = [
     name: 'Combine signatures',
     path: '/combine',
     component: CombineSignaturesAndBroadcastTx,
+  },
+  {
+    name: 'Authz test',
+    path: '/authz-test',
+    component: Authz,
   },
 ];
 

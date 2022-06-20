@@ -1,4 +1,5 @@
-import { StargateClient } from "@cosmjs/stargate";
+import { StargateClient, SigningStargateClient } from "@cosmjs/stargate";
+import { OfflineSigner } from "@cosmjs/proto-signing";
 import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import { RPC_ENDPOINT } from "@/config";
@@ -13,6 +14,10 @@ export async function initStargateClient() {
     stargateClient = await StargateClient.connect(RPC_ENDPOINT);
   }
   return stargateClient;
+}
+
+export async function getSigningStargateClient(offlineSigner: OfflineSigner) {
+  return await SigningStargateClient.connectWithSigner(RPC_ENDPOINT, offlineSigner)
 }
 
 export async function readAccountChainInfo(address: string) {

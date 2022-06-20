@@ -1,11 +1,19 @@
 import { defineStore } from "pinia";
 
-import { Registry, EncodeObject, TxBodyEncodeObject } from "@cosmjs/proto-signing";
 import {
+  Registry,
+  EncodeObject,
+  TxBodyEncodeObject,
+  makeAuthInfoBytes,
+  makeSignDoc,
+  encodePubkey,
+} from "@cosmjs/proto-signing";
+import {
+  Pubkey,
   StdSignDoc as AminoSignDoc,
 } from '@cosmjs/amino';
 import { defaultRegistryTypes } from "@cosmjs/stargate";
-import { TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx";
+import { TxRaw, SignDoc } from "cosmjs-types/cosmos/tx/v1beta1/tx";
 
 import {
   generateUnsignedTxJSON,
@@ -48,6 +56,14 @@ export const useTxStore = defineStore("tx", {
         memo: state.memo,
         msgs: state.msgs.map((msg) => aminoTypes.toAmino(msg)),
       }),
+    directSignDoc(state): (pubKey: Pubkey, accountNumber: number, sequence: number) => SignDoc {
+      return (pubKey, accountNumber, sequence) => {
+        const signer = { pubkey: encodePubkey(pubKey), sequence };
+        const fee = amountToCoins(state.fee.amount);
+        const authInfoBytes = makeAuthInfoBytes([signer], fee, state.fee.gasLimit);
+        return makeSignDoc(this.txBodyBytes, authInfoBytes, CHAIN_ID, accountNumber)
+      };
+    },
     stdFee: (state) => toStdFee(state.fee),
     txBodyBytes: (state) => {
       const { msgs, memo } = state;
