@@ -25,11 +25,17 @@
   <div>
     <h3>Add multisigner public key</h3>
     <div>
-      <input v-model.trim="inputPubKey" placeholder="Public key"/>
-      <button @click="addPubKey(inputPubKey)">Add</button>
+      <div> Current Keplr public key: {{ localPubKey }}</div>
       <button @click="addCurrentSigner">Add my Keplr public key</button>
     </div>
+    <br/>
+    <div>
+      <div>Add public key:</div>
+      <input v-model.trim="inputPubKey" placeholder="likepub1 or PubKey"/>
+      <button @click="addPubKey(inputPubKey)">Add</button>
+    </div>
   </div>
+  <br/>
   <div>
     <div>
       Multisig threshold: <input v-model.number="multisigStore.threshold" placeholder="multisig threshold"/>
@@ -45,7 +51,7 @@
 
 <script setup lang="ts">
 import { pubkeyToAddress } from '@cosmjs/amino';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 import { useSignerStore, useMultisigStore } from '@/stores';
 import { PubKey } from '@/cosmos/pubkey';
@@ -73,6 +79,16 @@ const multisigAddress = computed(() => {
 });
 
 const inputPubKey = ref('');
+const localPubKey = ref('');
+
+onMounted(async () => {
+  try {
+    await signerStore.getFromBrowserKeplr();
+    localPubKey.value = JSON.stringify(signerStore.publicKey!.toCosmosJSON())
+  } catch (err) {
+    console.error(err)
+  }
+})
 
 function removePubKey(i: number) {
   multisigStore.multisigners.splice(i, 1);
@@ -93,6 +109,7 @@ function addPubKey(input: string) {
 
 async function addCurrentSigner() {
   await signerStore.getFromBrowserKeplr();
-  addPubKey(JSON.stringify(signerStore.publicKey!.toCosmosJSON()));
+  localPubKey.value = JSON.stringify(signerStore.publicKey!.toCosmosJSON())
+  addPubKey(localPubKey.value);
 }
 </script>
