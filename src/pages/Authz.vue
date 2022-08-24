@@ -1,5 +1,4 @@
 <template>
-<Signer />
 <div>
   Which role is this address?
 </div>
@@ -15,7 +14,7 @@
     Grantee address: <input v-model.trim="granteeAddressInput" />
   </div>
   <div>
-    <button @click="grantInKeplr">Grant in Keplr</button>
+    <button @click="grant">Grant</button>
   </div>
 </div>
 <div v-if="roleInput === 'Grantee'">
@@ -45,8 +44,6 @@ import { GenericAuthorization } from "cosmjs-types/cosmos/authz/v1beta1/authz";
 import { MsgVote } from "cosmjs-types/cosmos/gov/v1beta1/tx";
 import { VoteOption } from "cosmjs-types/cosmos/gov/v1beta1/gov";
 import { Timestamp } from 'cosmjs-types/google/protobuf/timestamp';
-
-import Signer from '@/components/Signer.vue';
 
 import { useSignerStore } from '@/stores';
 import { MsgGrantEncodeObject, MsgExecEncodeObject } from '@/cosmos/msgs';
@@ -80,11 +77,10 @@ function getGrantExpiration(shiftSeconds: number = 60 * 60 * 24 * 365.25 /*one y
   };
 }
 
-async function getAddressFromKeplr() {
-  await store.getFromBrowserKeplr();
+async function getAddressFromSigner() {
   const { address } = store;
   if (!address) {
-    throw new Error('cannot get public key from Keplr');
+    throw new Error('cannot get public key from signer store');
   }
   return address;
 }
@@ -105,8 +101,8 @@ async function signAndBroadcast(msg: EncodeObject) {
   console.log({res});
 }
 
-async function grantInKeplr() {
-  const address = await getAddressFromKeplr();
+async function grant() {
+  const address = await getAddressFromSigner();
   const msg = {
     typeUrl: '/cosmos.authz.v1beta1.MsgGrant',
     value: {
@@ -129,7 +125,7 @@ async function grantInKeplr() {
 }
 
 async function vote() {
-  const address = await getAddressFromKeplr();
+  const address = await getAddressFromSigner();
   const msg = {
     typeUrl: '/cosmos.authz.v1beta1.MsgExec',
     value: {

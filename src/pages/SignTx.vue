@@ -8,10 +8,6 @@
     <h3>Transaction info</h3>
     <ImportUnsignedTx />
   </div>
-  <div>
-    <h3>Signer info</h3>
-    <Signer />
-  </div>
   <button :disabled="!hasSignerAddress" @click="signTx">Sign tx</button>
   <div v-if="!hasSignerAddress">
     <div>
@@ -32,7 +28,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 
-import Signer from '@/components/Signer.vue';
 import Multisig from '@/components/Multisig.vue';
 import ImportUnsignedTx from '@/components/tx/ImportUnsignedTx.vue';
 
@@ -56,13 +51,19 @@ const displaySignature = computed(() => {
 const hasSignerAddress = computed(() => multisigStore.hasAddress(signerStore.address));
 
 async function signTx() {
-  await signerStore.init();
+  if (!signerStore.publicKey) {
+    throw new Error(`Signer not yet inited`);
+  }
   if (!multisigStore.hasAddress(signerStore.address)) {
     throw new Error(`Signer address (${signerStore.address}) not in multisig wallet (${multisigStore.address})`);
   }
+  const aminoSigner = signerStore.aminoSigner;
+  if (!aminoSigner) {
+    throw new Error('Signer does not support Amino signing');
+  }
   const { accountNumber, sequence } = await readAccountChainInfo(multisigStore.address);
   const aminoSignDoc = txStore.aminoSignDoc(accountNumber, sequence);
-  signature.value = await signTxAmino(signerStore.offlineSigner!, signerStore.address, aminoSignDoc);
+  signature.value = await signTxAmino(aminoSigner, signerStore.address, aminoSignDoc);
   exportSignature();
 }
 

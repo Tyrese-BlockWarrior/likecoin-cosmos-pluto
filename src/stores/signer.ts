@@ -1,39 +1,68 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia';
 
+import { pubkeyToAddress, OfflineAminoSigner } from '@cosmjs/amino';
+import { OfflineSigner } from '@cosmjs/proto-signing';
 import {
-  OfflineAminoSigner, pubkeyToAddress,
-} from "@cosmjs/amino";
-import { OfflineDirectSigner } from '@cosmjs/proto-signing';
-import { loadKeplr, registerKeplrKeystoreChangeCallback } from "@/keplr";
-import { PubKey } from "@/cosmos/pubkey";
+  getBrowserKeplrOfflineSigner,
+  getMobileKeplrOfflineSigner,
+  registerKeplrKeystoreChangeCallback } from '@/keplr/keplr';
+import { PubKey } from '@/cosmos/pubkey';
 
-import { BECH32_PREFIX, CHAIN_ID } from "@/config";
+export const offlineSignerLoader = {
+  browser: getBrowserKeplrOfflineSigner,
+  mobile: getMobileKeplrOfflineSigner,
+} as const;
+
+export type WalletType = keyof typeof offlineSignerLoader;
+
+import { CHAIN_ID, BECH32_PREFIX } from "@/config";
 
 export const useSignerStore = defineStore('signer', {
   state: () => ({
-    offlineSigner: null as (OfflineDirectSigner & OfflineAminoSigner) | null,
+    offlineSigner: null as OfflineSigner | null,
     publicKey: null as PubKey | null,
-    inited: false,
+    keplrUnregisterFn: null as (() => void) | null,
   }),
   getters: {
-    address: (state) => state.publicKey === null ? '' : pubkeyToAddress(state.publicKey.aminoPubKey, BECH32_PREFIX),
+    address: (state) =>
+      state.publicKey === null ?
+        '' :
+        pubkeyToAddress(state.publicKey.aminoPubKey, BECH32_PREFIX),
+    aminoSigner: (state) => {
+      if (!state.offlineSigner) {
+        return null;
+      }
+      if (typeof (state.offlineSigner as any).signAmino !== 'function') {
+        return null;
+      }
+      return state.offlineSigner as OfflineAminoSigner;
+    }
   },
   actions: {
-    async init() {
-      if (!this.inited) {
-        registerKeplrKeystoreChangeCallback(() => this.getFromBrowserKeplr());
-        this.inited = true;
-      }
+    async init(type: WalletType) {
+      this.logout();
+      this.keplrUnregisterFn = registerKeplrKeystoreChangeCallback(() => {
+        this.getFromKeplr(type);
+      });
+      this.getFromKeplr(type);
     },
-    async getFromBrowserKeplr() {
-      const keplr = await loadKeplr(CHAIN_ID, {
+    async getFromKeplr(type: WalletType) {
+      const keplrSigner = await offlineSignerLoader[type](CHAIN_ID, {
         disableBalanceCheck: true,
         preferNoSetFee: true,
         preferNoSetMemo: true,
       });
-      const account = (await keplr.getAccounts())[0];
-      this.offlineSigner = keplr;
+      const account = (await keplrSigner.getAccounts())[0];
+      this.offlineSigner = keplrSigner;
       this.publicKey = PubKey.fromKeplrAccount(account)
+    },
+    logout() {
+      this.offlineSigner = null;
+      this.publicKey = null;
+      if (this.keplrUnregisterFn) {
+        this.keplrUnregisterFn();
+        this.keplrUnregisterFn = null;
+      }
     },
   },
 });

@@ -1,7 +1,12 @@
-import { Window as KeplrWindow, KeplrSignOptions } from "@keplr-wallet/types";
+import {
+  Keplr,
+  Window as KeplrWindow,
+  KeplrSignOptions,
+} from "@keplr-wallet/types";
 import { OfflineDirectSigner } from '@cosmjs/proto-signing';
 import { OfflineAminoSigner } from '@cosmjs/amino';
-import { CHAIN_ID, KEPLR_CHAIN_INFO } from "./config";
+import { KEPLR_CHAIN_INFO } from "@/config";
+import { getWCKeplr } from './get-wc-keplr';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -18,6 +23,7 @@ function onKeystoreChange(e: Event) {
   }
 }
 
+// TODO: what about wallet connect?
 window.addEventListener('keplr_keystorechange', onKeystoreChange);
 
 export function registerKeplrKeystoreChangeCallback(fn: Callback) {
@@ -25,22 +31,31 @@ export function registerKeplrKeystoreChangeCallback(fn: Callback) {
   return () => callbacks.delete(fn);
 }
 
-export async function loadKeplr(chainId: string, signOptions?: KeplrSignOptions) {
+export async function getBrowserKeplrOfflineSigner(chainId: string, signOptions?: KeplrSignOptions) {
   if (!window.keplr) {
     throw new Error('Keplr not found');
   }
   await window.keplr.experimentalSuggestChain(KEPLR_CHAIN_INFO);
-  await window.keplr.enable(chainId);
-  const keplrOfflineSigner = window.getOfflineSigner!(chainId);
+  return getKeplrOfflineSigner(window.keplr, chainId, signOptions);
+}
+
+export async function getMobileKeplrOfflineSigner(chainId: string, signOptions?: KeplrSignOptions) {
+  const keplr = await getWCKeplr();
+  return getKeplrOfflineSigner(keplr, chainId, signOptions);
+}
+
+export async function getKeplrOfflineSigner(keplr: Keplr, chainId: string, signOptions?: KeplrSignOptions) {
+  await keplr.enable(chainId);
+  const keplrOfflineSigner = keplr.getOfflineSigner(chainId);
   const offlineSigner: OfflineDirectSigner & OfflineAminoSigner = {
     async getAccounts() {
       return keplrOfflineSigner.getAccounts();
     },
     async signAmino(signerAddress, signDoc) {
-      return window.keplr!.signAmino(chainId, signerAddress, signDoc, signOptions);
+      return keplr.signAmino(chainId, signerAddress, signDoc, signOptions);
     },
     async signDirect(signerAddress, signDoc) {
-      return window.keplr!.signDirect(chainId, signerAddress, signDoc, signOptions);
+      return keplr.signDirect(chainId, signerAddress, signDoc, signOptions);
     },
   };
   return offlineSigner;

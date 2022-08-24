@@ -79,16 +79,13 @@ const multisigAddress = computed(() => {
 });
 
 const inputPubKey = ref('');
-const localPubKey = ref('');
-
-onMounted(async () => {
-  try {
-    await signerStore.getFromBrowserKeplr();
-    localPubKey.value = JSON.stringify(signerStore.publicKey!.toCosmosJSON())
-  } catch (err) {
-    console.error(err)
+const localPubKey = computed(() => {
+  const { publicKey } = signerStore;
+  if (!publicKey) {
+    return '-';
   }
-})
+  return JSON.stringify(publicKey!.toCosmosJSON());
+});
 
 function removePubKey(i: number) {
   multisigStore.multisigners.splice(i, 1);
@@ -108,8 +105,6 @@ function addPubKey(input: string) {
 }
 
 async function addCurrentSigner() {
-  await signerStore.getFromBrowserKeplr();
-  localPubKey.value = JSON.stringify(signerStore.publicKey!.toCosmosJSON())
   addPubKey(localPubKey.value);
 }
 </script>
