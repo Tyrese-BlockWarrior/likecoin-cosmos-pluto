@@ -41,6 +41,7 @@ export async function getBrowserKeplrOfflineSigner(chainId: string, signOptions?
 
 export async function getMobileKeplrOfflineSigner(chainId: string, signOptions?: KeplrSignOptions) {
   const keplr = await getWCKeplr();
+  await keplr.experimentalSuggestChain(KEPLR_CHAIN_INFO);
   return getKeplrOfflineSigner(keplr, chainId, signOptions);
 }
 
