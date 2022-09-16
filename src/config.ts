@@ -51,3 +51,4 @@ export const KEPLR_CHAIN_INFO = {
   },
   "features": ["ibc-transfer", "ibc-go"]
 };
+export const WALLET_CONNECT_BRIDGE = 'https://bridge.walletconnect.org';

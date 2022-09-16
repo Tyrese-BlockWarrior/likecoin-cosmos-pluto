@@ -1,5 +1,6 @@
 <template>
   <h1>Pluto</h1>
+  <Signer />
   <div>
     <div>Select a page</div>
     <div>
@@ -21,6 +22,8 @@ import {
   useQueryStringStore
 } from '@/stores';
 import { routes } from '@/router';
+
+import Signer from '@/components/Signer.vue';
 
 const router = useRouter();
 
