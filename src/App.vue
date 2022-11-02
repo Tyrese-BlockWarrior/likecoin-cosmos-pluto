@@ -12,6 +12,7 @@
       <router-view></router-view>
     </div>
   </div>
+  <footer>Made by <a href="https://liker.land">Liker Land</a></footer>
 </template>
 
 <script setup lang="ts">
@@ -62,5 +63,9 @@ function selectPage(n: number) {
 .page-container {
   border: 2px solid;
   min-height: 500px;
+}
+
+footer {
+  margin-top: 20px;
 }
 </style>
