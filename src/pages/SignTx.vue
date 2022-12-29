@@ -8,7 +8,8 @@
     <h3>Transaction info</h3>
     <ImportUnsignedTx />
   </div>
-  <button :disabled="!hasSignerAddress" @click="signTx">Sign tx</button>
+  <Signer v-if="!signerStore.address" />
+  <button v-else :disabled="!hasSignerAddress" @click="signTx">Sign tx</button>
   <div v-if="!hasSignerAddress">
     <div>
       Current signer address is not in multisig wallet public key.
@@ -28,6 +29,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 
+import Signer from '@/components/Signer.vue';
 import Multisig from '@/components/Multisig.vue';
 import ImportUnsignedTx from '@/components/tx/ImportUnsignedTx.vue';
 
