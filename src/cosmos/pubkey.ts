@@ -7,7 +7,9 @@ import {
   isSinglePubkey,
   MultisigThresholdPubkey,
   isMultisigThresholdPubkey,
+  pubkeyToAddress,
 } from '@cosmjs/amino';
+import { BECH32_PREFIX } from "@/config";
 import { encodeBase64, isBech32 } from '@/utils/utils';
 import { isValid as testBase64 } from 'js-base64';
 
@@ -40,6 +42,10 @@ export class PubKey {
 
   constructor(aminoPubKey: AminoPubKey) {
     this.aminoPubKey = aminoPubKey
+  }
+
+  address(prefix = BECH32_PREFIX) {
+    return pubkeyToAddress(this.aminoPubKey, prefix);
   }
 
   toCosmosJSON(){

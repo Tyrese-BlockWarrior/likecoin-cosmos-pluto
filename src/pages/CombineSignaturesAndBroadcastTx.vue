@@ -59,7 +59,7 @@ const signatures = ref([] as SingleSignature[]);
 const signaturesDisplay = computed(() => 
   signatures.value.map((signature) => ({
     keyholder: signature.keyholder ?? '(unnamed)',
-    address: signature.address(),
+    address: signature.pubKey.address(),
     signatureBase64: encodeBase64(signature.signature),
   }))
 );
@@ -87,7 +87,7 @@ async function importSignatures() {
     }
     const singleSignature = SingleSignature.fromJSON(json);
     signatures.value.push(singleSignature);
-    signaturesMap.set(singleSignature.address(), singleSignature.signature);
+    signaturesMap.set(singleSignature.pubKey.address(), singleSignature.signature);
   }
   if (!signatures.value.every((sig) => sig.sequence === signatures.value[0].sequence)) {
     throw new Error('Not all signatures are signed using the same sequence');

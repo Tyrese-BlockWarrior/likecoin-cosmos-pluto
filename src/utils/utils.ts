@@ -42,7 +42,7 @@ function transformObjectKey<T>(fn: (arg0: string) => string, obj: T): T {
     return obj.map((elem) => transformObjectKey(fn, elem)) as unknown as T;
   }
   const output = {} as any;
-  for (const [key, value] of Object.entries(obj)) {
+  for (const [key, value] of Object.entries(obj as any as object)) {
     const newKey = fn(key);
     const newValue = transformObjectKey(fn, value);
     output[newKey] = newValue;

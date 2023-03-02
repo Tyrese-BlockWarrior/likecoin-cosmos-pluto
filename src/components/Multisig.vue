@@ -39,7 +39,7 @@ const store = useMultisigStore();
 const displayMultisigners = computed(() => 
   store.multisigners.map(({ keyholder, pubKey }) => ({
     keyholder,
-    address: pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX),
+    address: pubKey.address(),
   }))
 );
 const multisigAddress = computed(() => {

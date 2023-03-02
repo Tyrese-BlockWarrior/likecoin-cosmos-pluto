@@ -4,7 +4,6 @@ import {
   OfflineAminoSigner,
   StdSignDoc as AminoSignDoc,
   pubkeyToAddress,
-  MultisigThresholdPubkey,
 } from '@cosmjs/amino';
 import { SignMode, signModeToJSON } from "cosmjs-types/cosmos/tx/signing/v1beta1/signing"
 
@@ -116,10 +115,6 @@ export class SingleSignature {
     this.signature = signature;
     this.sequence = sequence;
     this.keyholder = keyholder;
-  }
-
-  address() {
-    return pubkeyToAddress(this.pubKey.aminoPubKey, BECH32_PREFIX);
   }
 
   toJSON() {

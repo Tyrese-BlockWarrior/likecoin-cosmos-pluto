@@ -51,7 +51,7 @@
 
 <script setup lang="ts">
 import { pubkeyToAddress } from '@cosmjs/amino';
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 
 import { useSignerStore, useMultisigStore } from '@/stores';
 import { PubKey } from '@/cosmos/pubkey';
@@ -63,7 +63,7 @@ const multisigStore = useMultisigStore();
 const displayMultisigners = computed(() => 
   multisigStore.multisigners.map(({ keyholder, pubKey }) => ({
     keyholder,
-    address: pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX),
+    address: pubKey.address(),
     pubKey: pubKey.toCosmosJSON(),
   }))
 );
@@ -93,9 +93,9 @@ function removePubKey(i: number) {
 
 function addPubKey(input: string) {
   const pubKey = PubKey.fromStringInput(input);
-  const addr = pubkeyToAddress(pubKey.aminoPubKey, BECH32_PREFIX);
+  const addr = pubKey.address();
   for (const { pubKey: existingPubKey } of multisigStore.multisigners) {
-    const existingAddr = pubkeyToAddress(existingPubKey.aminoPubKey, BECH32_PREFIX);
+    const existingAddr = existingPubKey.address();
     if (addr === existingAddr) {
       throw new Error('public key already exist');
     }

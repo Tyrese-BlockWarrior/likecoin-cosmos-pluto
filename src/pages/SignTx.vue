@@ -22,7 +22,7 @@
     Signature: <code>{{ displaySignature }}</code>
   </div>
   <div v-if="signature">
-    If download was not start automatically, <button @click="exportSignature">click here</button> to download the signature
+    If download was not start automatically, <button @click="exportSignature()">click here</button> to download the signature
   </div>
 </template>
 
@@ -56,7 +56,8 @@ async function signTx() {
   if (!signerStore.publicKey) {
     throw new Error(`Signer not yet inited`);
   }
-  if (!multisigStore.hasAddress(signerStore.address)) {
+  const multisigner = multisigStore.getMultisignerByAddress(signerStore.address);
+  if (multisigner === null) {
     throw new Error(`Signer address (${signerStore.address}) not in multisig wallet (${multisigStore.address})`);
   }
   const aminoSigner = signerStore.aminoSigner;
@@ -66,12 +67,16 @@ async function signTx() {
   const { accountNumber, sequence } = await readAccountChainInfo(multisigStore.address);
   const aminoSignDoc = txStore.aminoSignDoc(accountNumber, sequence);
   signature.value = await signTxAmino(aminoSigner, signerStore.address, aminoSignDoc);
-  exportSignature();
+
+  const keyHolder = multisigner.keyholder.trim() || signerStore.address;
+  const purpose = txStore.msgs.map(msg => msg.typeUrl.split('.').pop()).join('-');
+  const filename = `signature-${purpose}-${multisigStore.title}-${keyHolder}.json`;
+  exportSignature(filename);
 }
 
-function exportSignature() {
+function exportSignature(filename: string = 'signature.json') {
   const json = signature.value!.toJSON();
   const exported = JSON.stringify(json, null, 2);
-  generateFileAndDownload(exported, 'signature.json');
+  generateFileAndDownload(exported, filename);
 }
 </script>

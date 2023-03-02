@@ -48,11 +48,18 @@ export const useMultisigStore = defineStore('multisig', {
     address(): string {
       return this.pubKey ? pubkeyToAddress(this.pubKey, BECH32_PREFIX) : "-";
     } ,
+    getMultisignerByAddress(): (address: string) => Multisigner | null {
+      return (address) => {
+        if (this.pubKey === null) {
+          return null;
+        }
+        const prefix = address.split('1')[0];
+        const multisigner = this.multisigners.find((s) => s.pubKey.address(prefix) === address);
+        return multisigner ?? null;
+      }
+    },
     hasAddress(): (address: string) => boolean {
-      return (address) =>
-        this.pubKey === null ?
-          false :
-          this.pubKey.value.pubkeys.some((pubKey) => pubkeyToAddress(pubKey, BECH32_PREFIX) === address);
+      return (address) => this.getMultisignerByAddress(address) !== null;
     },
     exportTitle: (state) => {
       const title = state.title.trim();
